@@ -78,25 +78,3 @@ export const CRYPTONLY_EXCEPTION_WITHDRAWAL_EITHER_ID_OR_ORDER_ID =
   'exceptions.withdrawal.eitherWithdrawalIdOrOrderIdMustBeProvided' as const;
 export const CRYPTONLY_EXCEPTION_WITHDRAWAL_NOT_FOUND =
   'exceptions.withdrawal.notFound' as const;
-
-/** Virtual balance conversion */
-export const CRYPTONLY_EXCEPTION_CONVERTING_AMOUNT_MUST_BE_POSITIVE =
-  'exceptions.converting.amountMustBePositive' as const;
-export const CRYPTONLY_EXCEPTION_CONVERTING_SAME_CURRENCY =
-  'exceptions.converting.sameCurrency' as const;
-export const CRYPTONLY_EXCEPTION_CONVERTING_CURRENCY_NOT_FOUND =
-  'exceptions.converting.currencyNotFound' as const;
-export const CRYPTONLY_EXCEPTION_CONVERTING_QUOTE_NOT_FOUND =
-  'exceptions.converting.quoteNotFound' as const;
-export const CRYPTONLY_EXCEPTION_CONVERTING_QUOTE_NOT_QUOTED =
-  'exceptions.converting.quoteNotQuoted' as const;
-export const CRYPTONLY_EXCEPTION_CONVERTING_QUOTE_EXPIRED =
-  'exceptions.converting.quoteExpired' as const;
-export const CRYPTONLY_EXCEPTION_CONVERTING_BALANCE_NOT_FOUND =
-  'exceptions.converting.balanceNotFound' as const;
-export const CRYPTONLY_EXCEPTION_CONVERTING_AMOUNT_SPECIFICATION_INVALID =
-  'exceptions.converting.amountSpecificationInvalid' as const;
-export const CRYPTONLY_EXCEPTION_CONVERTING_AMOUNT_INVALID_DECIMAL_PLACES =
-  'exceptions.converting.amountInvalidDecimalPlaces' as const;
-export const CRYPTONLY_EXCEPTION_CONVERTING_INSUFFICIENT_BALANCE =
-  'exceptions.converting.insufficientBalance' as const;

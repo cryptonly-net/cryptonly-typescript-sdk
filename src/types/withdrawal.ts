@@ -98,9 +98,10 @@ export interface WithdrawalQuoteFeeBreakdown {
   feeUsd: number;
 }
 
+/** Preview of the conversion used to top up a short withdrawal balance. */
 export interface WithdrawalAutoConvertPreview {
-  fromCryptoCurrencyCode: string;
-  toCryptoCurrencyCode: string;
+  fromAssetCode: string;
+  toAssetCode: string;
   fromAmount: number;
   toAmount: number;
 }
@@ -108,10 +109,8 @@ export interface WithdrawalAutoConvertPreview {
 /**
  * Response of `POST /withdrawal/quote`.
  *
- * `amount` stays in `cryptoCurrencyCode` because that is the value sent
- * on-chain. `totalDeduction` and `fee` are in `cryptoCurrencyCode`. When
- * `autoConvert` is set, its debit is in `fromCryptoCurrencyCode`, at the
- * standard conversion rate.
+ * `amount`, `totalDeduction`, and `fee` are in `cryptoCurrencyCode`.
+ * When `autoConvert` is set, its debit is in `fromAssetCode`.
  */
 export interface WithdrawalQuote {
   /** Opaque id; submit to `POST /withdrawal/commit` to commit. */

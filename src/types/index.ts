@@ -4,7 +4,6 @@ export * from './pagination';
 export * from './status';
 export * from './invoice';
 export * from './withdrawal';
-export * from './converting';
 export * from './currencies';
 export * from './settlement';
 export * from './deposit';

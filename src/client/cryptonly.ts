@@ -5,7 +5,6 @@ import { AddressProvisionClient } from '../resources/address-provision.client';
 import { DepositClient } from '../resources/deposit.client';
 import { InvoiceClient } from '../resources/invoice.client';
 import { WithdrawalClient } from '../resources/withdrawal.client';
-import { ConvertingClient } from '../resources/converting.client';
 import { trimBaseUrl } from '../http/transport';
 import type { CryptonlyContext } from './context';
 
@@ -104,11 +103,6 @@ export class Cryptonly {
    */
   readonly currencies: CurrenciesClient;
 
-  /**
-   * Virtual balance conversion between currencies (no on-chain transfer).
-   */
-  readonly converting: ConvertingClient;
-
   constructor(config: CryptonlyConfig) {
     if (!config?.apiKey) {
       throw new TypeError('Cryptonly: `apiKey` is required');
@@ -142,6 +136,5 @@ export class Cryptonly {
     this.withdrawal = new WithdrawalClient(this._ctx);
     this.accounts = new AccountsClient(this._ctx);
     this.currencies = new CurrenciesClient(this._ctx);
-    this.converting = new ConvertingClient(this._ctx);
   }
 }

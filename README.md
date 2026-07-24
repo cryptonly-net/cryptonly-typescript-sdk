@@ -2,7 +2,7 @@
 
 Official JavaScript/TypeScript SDK for the Cryptonly merchant API.
 
-Use it to create invoices and deposits, manage withdrawals and balance conversions, reserve reusable deposit addresses, and work with merchant accounts from secure backend environments.
+Use it to create invoices and deposits, manage withdrawals, reserve reusable deposit addresses, and work with merchant accounts from secure backend environments.
 
 - Website: [cryptonly.net](https://cryptonly.net)
 - Documentation: [cryptonly.net/docs](https://cryptonly.net/docs)
@@ -53,8 +53,7 @@ console.log(invoice);
 - Invoice creation and management
 - Crypto **deposits** (one-shot top-up addresses)
 - **Address provision** (reusable pool addresses per customer)
-- Withdrawal creation and lookup (quote + commit)
-- **Converting** (virtual balance FX: quote, preview, commit)
+- Withdrawal creation and lookup (quote + commit), with automatic virtual balance top-up when needed
 - Merchant account operations
 - Supported crypto and fiat currency directory
 - Built-in API key authentication
@@ -171,7 +170,7 @@ This constant is also exported for custom `fetch` calls and lower-level integrat
 
 ## API surface
 
-The `Cryptonly` client exposes seven resource clients. Request/response types are exported from `@cryptonly/sdk` (see `CreateInvoiceParams`, `CreateDepositParams`, `ConvertingQuoteRequest`, and related types).
+The `Cryptonly` client exposes six resource clients. Request/response types are exported from `@cryptonly/sdk` (see `CreateInvoiceParams`, `CreateDepositParams`, `WithdrawalQuoteRequest`, and related types).
 
 | Client property | Methods |
 |-----------------|---------|
@@ -181,7 +180,6 @@ The `Cryptonly` client exposes seven resource clients. Request/response types ar
 | `addressProvision` | `create`, `get` |
 | `accounts` | `list`, `create` |
 | `currencies` | `list`, `listFiat` |
-| `converting` | `quote`, `preview`, `commit` |
 
 **Top-level exports (not on `client`):** `verifyInvoiceWebhook`, `verifyWithdrawalWebhook`, `verifyDepositWebhook`, `CryptonlyApiError`, `newSdkOrderId`, merchant API constants, webhook event constants, and error code constants.
 
@@ -202,9 +200,6 @@ Use SDK methods instead of constructing `x-tenant-api-key` headers manually.
 - `GET /deposit` — `deposit.get`
 - `POST /address-provision` — `addressProvision.create`
 - `GET /address-provision` — `addressProvision.get`
-- `POST /converting/quote` — `converting.quote`
-- `POST /converting/preview` — `converting.preview`
-- `POST /converting/commit` — `converting.commit`
 - `GET /accounts` — `accounts.list`
 - `POST /accounts` — `accounts.create`
 - `GET /currencies` — `currencies.list` (optional `network` query)
@@ -223,16 +218,18 @@ Use SDK methods instead of constructing `x-tenant-api-key` headers manually.
 
 ### `client.withdrawal`
 
-Two-step flow: **`quote`** then **`commit`** (like converting). The quote does not reserve balance; it returns a short-lived `quoteId` and fee breakdown.
+Two-step flow: **`quote`** then **`commit`**. The quote does not reserve balance; it returns a short-lived `quoteId` and fee breakdown.
 
 | Method | HTTP | Purpose |
 |--------|------|---------|
-| `quote` | `POST /withdrawal/quote` | Stage 1. Body: `WithdrawalQuoteRequest` — `accountId`, `amount`, `cryptoCurrencyCode`, `address`, optional `orderId` (idempotency). |
+| `quote` | `POST /withdrawal/quote` | Stage 1. Body: `WithdrawalQuoteRequest` — `accountId`, `amount`, `cryptoCurrencyCode`, `address`, optional `orderId` (idempotency), optional `allowAutoConvert`. |
 | `commit` | `POST /withdrawal/commit` | Stage 2. Body: `{ quoteId }`. |
 | `list` | `GET /withdrawal/list` | Paginated list. Query: `accountId`, optional `status`, `page`, `limit`. |
 | `get` | `GET /withdrawal` | Single withdrawal. Query: `accountId`, `id` or `orderId`. |
 
 `withdrawal.get` validates locally (`accountId` + `id` or `orderId`) or throws **`TypeError`**.
+
+If the withdrawal balance can't cover `amount` + on-chain fee and `allowAutoConvert: true` was set, `WithdrawalQuote.autoConvert` describes a conversion (`fromAssetCode` → `toAssetCode`) that tops it up at commit time.
 
 ### `client.deposit`
 
@@ -276,16 +273,6 @@ const supported = await client.currencies.list();
 const tronAssets = await client.currencies.list({ network: 'Tron' });
 const fiats = await client.currencies.listFiat();
 ```
-
-### `client.converting`
-
-Virtual balance conversion (no on-chain transfer). **`preview`** is for UI sync; **`quote`** stores a short-lived `quoteId`; **`commit`** applies it.
-
-| Method | HTTP | Purpose |
-|--------|------|---------|
-| `quote` | `POST /converting/quote` | Body: `ConvertingQuoteRequest` — `accountId`, `fromCryptoCurrencyCode`, `toCryptoCurrencyCode`, and either `fromAmount` or `toAmount`. Returns locked amounts + `quoteId` + `expiresAt`. |
-| `preview` | `POST /converting/preview` | Same body as `quote`; returns FX breakdown without persisting a quote. |
-| `commit` | `POST /converting/commit` | Body: `CommitConvertingRequest` — `{ quoteId }`. |
 
 ### Shared response notes
 
@@ -399,32 +386,6 @@ const status = await client.addressProvision.get({
 });
 
 console.log(status.status, status.address);
-```
-
-### Convert balances
-
-Use `preview` to show rates in UI, then `quote` + `commit` to execute.
-
-```ts
-const preview = await client.converting.preview({
-  accountId: 'acc_123',
-  fromCryptoCurrencyCode: 'USDT_TRC20',
-  toCryptoCurrencyCode: 'BTC',
-  fromAmount: 100,
-});
-
-const quote = await client.converting.quote({
-  accountId: 'acc_123',
-  fromCryptoCurrencyCode: 'USDT_TRC20',
-  toCryptoCurrencyCode: 'BTC',
-  fromAmount: 100,
-});
-
-const result = await client.converting.commit({
-  quoteId: quote.quoteId,
-});
-
-console.log(result);
 ```
 
 ---
@@ -549,7 +510,6 @@ For full API behavior and product-level flows, see the [Cryptonly docs](https://
 - deposits
 - address provision
 - withdrawals
-- converting
 - idempotency
 - webhooks
 - merchant accounts
