@@ -33,4 +33,18 @@ describe('finalizeInvoiceCreateBody', () => {
       /fiatCurrencyCode/,
     );
   });
+
+  it('passes through successUrl and failedUrl', () => {
+    const body = finalizeInvoiceCreateBody({
+      accountId: 'acc-1',
+      fiatCurrencyCode: 'USD',
+      orderId: 'o1',
+      successUrl: 'https://m.example/ok',
+      failedUrl: 'https://m.example/fail',
+      returnUrl: 'https://m.example/back',
+    });
+    expect(body.successUrl).toBe('https://m.example/ok');
+    expect(body.failedUrl).toBe('https://m.example/fail');
+    expect(body.returnUrl).toBe('https://m.example/back');
+  });
 });

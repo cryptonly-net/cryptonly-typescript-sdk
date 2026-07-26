@@ -209,7 +209,7 @@ Use SDK methods instead of constructing `x-tenant-api-key` headers manually.
 
 | Method | HTTP | Purpose |
 |--------|------|---------|
-| `create` | `POST /invoice` | Create a hosted-payment invoice. Body: `CreateInvoiceParams` — `accountId`, `fiatCurrencyCode`, `orderId` (or omit to auto-generate), `amount` or `items`, `description`, `returnUrl`, `customerId`, etc. Response `expiresAt` is a **`Date`**. |
+| `create` | `POST /invoice` | Create a hosted-payment invoice. Body: `CreateInvoiceParams` — `accountId`, `fiatCurrencyCode`, `orderId` (or omit to auto-generate), `amount` or `items`, `description`, `returnUrl`, `successUrl`, `failedUrl`, `customerId`, etc. Response `expiresAt` is a **`Date`**. |
 | `list` | `GET /invoice/list` | Paginated list. Query: `accountId`, optional `status`, `page`, `limit`. Returns `{ data, total, page, limit, hasMore }`. |
 | `get` | `GET /invoice` | Single invoice. Query: `accountId`, `id` or `orderId`. |
 | `cancel` | `POST /invoice/cancel` | Cancel a pending invoice. Same query as `get`. |
@@ -277,7 +277,7 @@ const fiats = await client.currencies.listFiat();
 ### Shared response notes
 
 - **`invoice.list`**, **`withdrawal.list`**, and **`deposit.list`** return paginated envelopes. List rows use **`Date`** for timestamp fields where the SDK parses them; **`source`** (`api` \| `admin_panel`) appears when the API includes initiation metadata.
-- **Invoices:** optional **`returnUrl`**, **`customerId`**, **`customPayload`**, and linked **`deposit`** summary when present.
+- **Invoices:** optional **`returnUrl`**, **`successUrl`**, **`failedUrl`**, **`customerId`**, **`customPayload`**, and linked **`deposit`** summary when present.
 - **Withdrawals:** **`createdAt`**, **`updatedAt`**, **`quoteId`**, **`transferId`** (nullable) alongside fee and amount fields.
 - Prefer exported error constants (e.g. **`CRYPTONLY_EXCEPTION_INVOICE_NOT_FOUND`**, **`CRYPTONLY_EXCEPTION_INVOICE_CUSTOMER_BLOCKED`**, **`CRYPTONLY_EXCEPTION_WITHDRAWAL_INSUFFICIENT_BALANCE`**, **`CRYPTONLY_EXCEPTION_AUTH_INVALID_API_KEY`**) over string literals on **`CryptonlyApiError.code`**.
 

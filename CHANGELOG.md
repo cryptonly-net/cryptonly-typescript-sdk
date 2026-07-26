@@ -5,6 +5,12 @@ All notable changes to `@cryptonly/sdk` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-07-26
+
+### Added
+
+- Optional `successUrl` and `failedUrl` on invoice create and invoice responses. Status mapping: `returnUrl` for `created` / `cancelled` / `expired`, `successUrl` for `paid` / `overpaid`, `failedUrl` for `failed` / `suspended` / `partially_paid`.
+
 ## [1.2.0] - 2026-07-24
 
 ### Removed

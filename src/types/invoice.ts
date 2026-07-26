@@ -24,7 +24,15 @@ export interface CreateInvoiceApiKeyRequest {
   /** Optional reference shown to the customer on the payment page. */
   number?: string;
   webhookUrl?: string;
+  /**
+   * Browser CTA when the invoice is `created`, `cancelled`, or `expired`.
+   * Not used for paid/overpaid (use `successUrl`) or failed/suspended/partially_paid (use `failedUrl`).
+   */
   returnUrl?: string;
+  /** Browser CTA when the invoice is `paid` or `overpaid`. */
+  successUrl?: string;
+  /** Browser CTA when the invoice is `failed`, `suspended`, or `partially_paid`. */
+  failedUrl?: string;
   expiresInMinutes?: number;
   customerId?: string;
   customPayload?: string;
@@ -74,8 +82,14 @@ export interface Invoice {
   /** Optional reference for the customer on the payment page, when set at creation. */
   number?: string;
   webhookUrl?: string;
-  /** Post-payment return URL from invoice creation, when provided. */
+  /**
+   * Browser CTA URL for `created` / `cancelled` / `expired`, when provided at creation.
+   */
   returnUrl?: string;
+  /** Browser CTA URL for `paid` / `overpaid`, when provided at creation. */
+  successUrl?: string;
+  /** Browser CTA URL for `failed` / `suspended` / `partially_paid`, when provided at creation. */
+  failedUrl?: string;
   expiresAt: string;
   createdAt: string;
   paidAt?: string;
