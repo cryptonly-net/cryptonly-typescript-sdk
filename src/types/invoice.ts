@@ -25,8 +25,9 @@ export interface CreateInvoiceApiKeyRequest {
   number?: string;
   webhookUrl?: string;
   /**
-   * Browser CTA when the invoice is `created`, `cancelled`, or `expired`.
+   * Browser CTA when the invoice is `cancelled` or `expired`.
    * Not used for paid/overpaid (use `successUrl`) or failed/suspended/partially_paid (use `failedUrl`).
+   * No CTA is shown while the invoice is `created` or `processing`.
    */
   returnUrl?: string;
   /** Browser CTA when the invoice is `paid` or `overpaid`. */
@@ -42,7 +43,9 @@ export interface CreateInvoiceApiKeyRequest {
  * Parameters for `new Cryptonly(...).invoice.create(...)`. Looser than the wire body:
  * `accountId` is required; `orderId` is optional
  * and the client generates one when omitted (not idempotent for retries - pass
- * your own for idempotency). Pass `amount` or `items` per the server rules.
+ * your own for idempotency). A positive `amount` is the invoice total even when
+ * `items` are also sent; items are used to compute the total only when `amount`
+ * is omitted.
  */
 export type CreateInvoiceParams = Partial<CreateInvoiceApiKeyRequest>;
 
@@ -83,7 +86,7 @@ export interface Invoice {
   number?: string;
   webhookUrl?: string;
   /**
-   * Browser CTA URL for `created` / `cancelled` / `expired`, when provided at creation.
+   * Browser CTA URL for `cancelled` / `expired`, when provided at creation.
    */
   returnUrl?: string;
   /** Browser CTA URL for `paid` / `overpaid`, when provided at creation. */

@@ -88,7 +88,7 @@ export interface WithdrawalQuoteRequest {
 
 /** Fee breakdown attached to a `WithdrawalQuote`. */
 export interface WithdrawalQuoteFeeBreakdown {
-  /** Real on-chain fee, in network base currency (ETH/TRX/BNB/BTC). */
+  /** Real on-chain fee, in network base currency (ETH/TRX/BNB/BTC; ETH on Base). */
   feeNative: number;
   /** Network base currency symbol, e.g. `ETH`. */
   feeCurrency: string;

@@ -209,7 +209,7 @@ Use SDK methods instead of constructing `x-tenant-api-key` headers manually.
 
 | Method | HTTP | Purpose |
 |--------|------|---------|
-| `create` | `POST /invoice` | Create a hosted-payment invoice. Body: `CreateInvoiceParams` — `accountId`, `fiatCurrencyCode`, `orderId` (or omit to auto-generate), `amount` or `items`, `description`, `returnUrl`, `successUrl`, `failedUrl`, `customerId`, etc. Response `expiresAt` is a **`Date`**. |
+| `create` | `POST /invoice` | Create a hosted-payment invoice. Body: `CreateInvoiceParams` — `accountId`, `fiatCurrencyCode`, `orderId` (or omit to auto-generate), `amount` and/or `items` (a positive `amount` is the total; items compute the total only when `amount` is omitted), `description`, `returnUrl`, `successUrl`, `failedUrl`, `customerId`, etc. Response `expiresAt` is a **`Date`**. |
 | `list` | `GET /invoice/list` | Paginated list. Query: `accountId`, optional `status`, `page`, `limit`. Returns `{ data, total, page, limit, hasMore }`. |
 | `get` | `GET /invoice` | Single invoice. Query: `accountId`, `id` or `orderId`. |
 | `cancel` | `POST /invoice/cancel` | Cancel a pending invoice. Same query as `get`. |

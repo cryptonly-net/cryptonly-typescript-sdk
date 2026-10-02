@@ -3,6 +3,7 @@ export type SupportedNetwork =
   | 'Tron'
   | 'Ethereum'
   | 'BNB'
+  | 'Base'
   | 'BTC'
   | 'Solana';
 
