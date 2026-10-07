@@ -10,6 +10,11 @@ import type {
   GetAddressProvisionQuery,
 } from '../types/address-provision';
 
+/**
+ * @deprecated Address provisioning is temporarily disabled; the server answers
+ * HTTP 503 `exceptions.addressProvision.temporarilyDisabled`. Use
+ * `DepositClient.create` for each payment instead.
+ */
 export class AddressProvisionClient {
   constructor(private readonly ctx: CryptonlyContext) {}
 
@@ -21,7 +26,7 @@ export class AddressProvisionClient {
     return `/address-provision${suffix}`;
   }
 
-  /** `POST /address-provision` - reserve a reusable pool address. */
+  /** @deprecated `POST /address-provision` - currently fails with HTTP 503. */
   async create(
     params: CreateAddressProvisionParams,
   ): Promise<AddressProvisionCreateData> {
@@ -37,7 +42,7 @@ export class AddressProvisionClient {
     return json.data;
   }
 
-  /** `GET /address-provision` - fetch one provision by id. */
+  /** @deprecated `GET /address-provision` - currently fails with HTTP 503. */
   async get(q: GetAddressProvisionQuery): Promise<AddressProvisionGetData> {
     const { accountId, id } = q;
     const json = await merchantRequest<AddressProvisionGetResponse>({

@@ -45,6 +45,14 @@ export const CRYPTONLY_EXCEPTION_INVOICE_NO_ACTIVE_DEPOSIT =
 export const CRYPTONLY_EXCEPTION_INVOICE_CANNOT_CANCEL =
   'exceptions.invoice.cannotCancel' as const;
 
+/** Deposit network fee: no live fee quote for the currency (HTTP 503, retry shortly). */
+export const CRYPTONLY_EXCEPTION_DEPOSIT_FEE_QUOTE_UNAVAILABLE =
+  'exceptions.depositFee.quoteUnavailable' as const;
+
+/** Address provision (HTTP 503): use `deposit.create` instead. */
+export const CRYPTONLY_EXCEPTION_ADDRESS_PROVISION_TEMPORARILY_DISABLED =
+  'exceptions.addressProvision.temporarilyDisabled' as const;
+
 /** Withdrawal */
 export const CRYPTONLY_EXCEPTION_WITHDRAWAL_AMOUNT_MUST_BE_POSITIVE =
   'exceptions.withdrawal.amountMustBePositive' as const;

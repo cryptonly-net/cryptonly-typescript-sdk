@@ -6,5 +6,6 @@ export * from './invoice';
 export * from './withdrawal';
 export * from './currencies';
 export * from './settlement';
+export * from './x402-settlement';
 export * from './deposit';
 export * from './address-provision';

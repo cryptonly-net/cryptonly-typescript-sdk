@@ -1,9 +1,11 @@
-/** Default merchant-visible address validity when omitted on create. */
+/** @deprecated Address provisioning is temporarily disabled. */
 export const ADDRESS_PROVISION_DEFAULT_EXPIRES_MINUTES = 30;
 
+/** @deprecated Address provisioning is temporarily disabled. */
 export const ADDRESS_PROVISION_MIN_EXPIRES_MINUTES = 15;
 
+/** @deprecated Address provisioning is temporarily disabled. */
 export const ADDRESS_PROVISION_MAX_EXPIRES_MINUTES = 90;
 
-/** Extra monitoring time for late confirmations after the reserve window. */
+/** @deprecated Address provisioning is temporarily disabled. */
 export const ADDRESS_PROVISION_GRACE_MINUTES = 30;

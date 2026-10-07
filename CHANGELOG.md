@@ -5,6 +5,18 @@ All notable changes to `@cryptonly/sdk` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-10-06
+
+### Changed
+
+- `MerchantCurrency.minDepositAmount` is now always above the current network fee.
+- Invoice crypto amounts at checkout include the network fee.
+
+### Deprecated
+
+- `client.addressProvision`, the `AddressProvision*` types and the `ADDRESS_PROVISION_*` constants. Address provisioning is temporarily disabled and both calls fail with HTTP 503; use `deposit.create` instead.
+- `DepositStatusChangedWebhookData.addressProvisionId` is no longer sent.
+
 ## [1.4.0] - 2026-10-01
 
 ### Added

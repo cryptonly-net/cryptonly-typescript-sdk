@@ -11,6 +11,18 @@ export type SupportedNetwork =
 export type TokenType = 'erc20' | 'trc20' | 'bep20';
 
 /**
+ * Network fee the payer covers on each deposit: the cost of sweeping the
+ * dedicated deposit address. Withheld from the received amount before the
+ * commission, and added on top of invoice amounts at checkout.
+ */
+export interface MerchantDepositNetworkFee {
+  /** Fee in the currency units. */
+  amount: number;
+  /** ISO 8601. Fees refresh every few minutes. */
+  quotedAt: string;
+}
+
+/**
  * One crypto currency from the merchant's perspective.
  *
  * `depositCommission` reflects the **tenant-effective** value: tenant-wide
@@ -22,7 +34,13 @@ export interface MerchantCurrency {
   network: SupportedNetwork;
   tokenType?: TokenType;
   decimalPlaces: number;
+  /** Smallest accepted deposit; always above `depositNetworkFee.amount`. */
   minDepositAmount: number;
+  /**
+   * Current payer network fee. `null` while no live quote exists; new
+   * deposits in this currency are refused until one does.
+   */
+  depositNetworkFee: MerchantDepositNetworkFee | null;
   minWithdrawalAmount: number;
   /** Tenant-effective deposit commission. */
   depositCommission: number;

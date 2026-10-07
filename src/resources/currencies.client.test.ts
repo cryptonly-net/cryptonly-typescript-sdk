@@ -18,6 +18,7 @@ const sampleCrypto = {
   tokenType: 'trc20',
   decimalPlaces: 6,
   minDepositAmount: 1,
+  depositNetworkFee: { amount: 0.85, quotedAt: '2026-10-06T10:00:00.000Z' },
   minWithdrawalAmount: 5,
   depositCommission: 0.005,
   contractAddress: 'TXabc',

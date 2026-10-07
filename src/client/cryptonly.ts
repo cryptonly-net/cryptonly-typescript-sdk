@@ -5,6 +5,7 @@ import { AddressProvisionClient } from '../resources/address-provision.client';
 import { DepositClient } from '../resources/deposit.client';
 import { InvoiceClient } from '../resources/invoice.client';
 import { WithdrawalClient } from '../resources/withdrawal.client';
+import { X402SettlementsClient } from '../resources/x402-settlements.client';
 import { trimBaseUrl } from '../http/transport';
 import type { CryptonlyContext } from './context';
 
@@ -78,7 +79,9 @@ export class Cryptonly {
   readonly deposit: DepositClient;
 
   /**
-   * Reserve reusable pool addresses for repeated customer top-ups.
+   * @deprecated Address provisioning is temporarily disabled; both calls fail
+   * with HTTP 503 `exceptions.addressProvision.temporarilyDisabled`.
+   * Create a deposit per payment with `deposit.create` instead.
    */
   readonly addressProvision: AddressProvisionClient;
 
@@ -102,6 +105,11 @@ export class Cryptonly {
    * tenant-effective deposit commission already applied.
    */
   readonly currencies: CurrenciesClient;
+
+  /**
+   * List and retrieve x402 settlements (`x402.list`).
+   */
+  readonly x402Settlements: X402SettlementsClient;
 
   constructor(config: CryptonlyConfig) {
     if (!config?.apiKey) {
@@ -136,5 +144,6 @@ export class Cryptonly {
     this.withdrawal = new WithdrawalClient(this._ctx);
     this.accounts = new AccountsClient(this._ctx);
     this.currencies = new CurrenciesClient(this._ctx);
+    this.x402Settlements = new X402SettlementsClient(this._ctx);
   }
 }

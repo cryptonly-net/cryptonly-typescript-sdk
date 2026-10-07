@@ -6,12 +6,16 @@ import {
   CRYPTONLY_WEBHOOK_EVENT_DEPOSIT_STATUS_CHANGED,
   CRYPTONLY_WEBHOOK_EVENT_INVOICE_STATUS_CHANGED,
   CRYPTONLY_WEBHOOK_EVENT_WITHDRAWAL_STATUS_CHANGED,
+  CRYPTONLY_WEBHOOK_EVENT_X402_PAYMENT_FAILED,
+  CRYPTONLY_WEBHOOK_EVENT_X402_PAYMENT_SETTLED,
 } from './constants';
 
 type CryptonlyWebhookEvent =
   | typeof CRYPTONLY_WEBHOOK_EVENT_INVOICE_STATUS_CHANGED
   | typeof CRYPTONLY_WEBHOOK_EVENT_WITHDRAWAL_STATUS_CHANGED
-  | typeof CRYPTONLY_WEBHOOK_EVENT_DEPOSIT_STATUS_CHANGED;
+  | typeof CRYPTONLY_WEBHOOK_EVENT_DEPOSIT_STATUS_CHANGED
+  | typeof CRYPTONLY_WEBHOOK_EVENT_X402_PAYMENT_SETTLED
+  | typeof CRYPTONLY_WEBHOOK_EVENT_X402_PAYMENT_FAILED;
 
 /**
  * JSON body Cryptonly POSTs to merchant `webhookUrl` (UTF-8, same string that is HMAC-signed).
@@ -80,7 +84,10 @@ export type CryptonlyWithdrawalStatusChangedWebhookBody =
 export interface DepositStatusChangedWebhookData extends Deposit {
   /** Status immediately before this transition. */
   previousStatus?: DepositStatus;
-  /** Present when this deposit is a payment under an address provision. */
+  /**
+   * @deprecated No longer sent: address provisioning is disabled and every
+   * deposit gets its own address.
+   */
   addressProvisionId?: string;
   depositTransactionHash?: string | null;
   actuallyReceivedAmount?: number | null;
@@ -90,4 +97,38 @@ export interface DepositStatusChangedWebhookData extends Deposit {
 export type CryptonlyDepositStatusChangedWebhookBody =
   CryptonlyOutboundWebhookBody<DepositStatusChangedWebhookData> & {
     event: typeof CRYPTONLY_WEBHOOK_EVENT_DEPOSIT_STATUS_CHANGED;
+  };
+
+/**
+ * `data` for {@link CRYPTONLY_WEBHOOK_EVENT_X402_PAYMENT_SETTLED} and
+ * {@link CRYPTONLY_WEBHOOK_EVENT_X402_PAYMENT_FAILED}. Same shape as
+ * `GET /x402/settlements/:id`. Non-custodial: the token went straight to
+ * `payTo`; the merchant's Cryptonly balance does not change.
+ */
+export interface X402PaymentWebhookData {
+  id: string;
+  status: 'submitted' | 'confirmed' | 'failed';
+  /** CAIP-2, e.g. `eip155:8453`. */
+  network: string;
+  /** Token contract. */
+  asset: string;
+  /** Atomic units. */
+  amount: string;
+  payer: string;
+  payTo: string;
+  /** Empty until the settlement is broadcast. */
+  transaction: string;
+  errorReason: string | null;
+  createdAt: string;
+  confirmedAt: string | null;
+}
+
+export type CryptonlyX402PaymentSettledWebhookBody =
+  CryptonlyOutboundWebhookBody<X402PaymentWebhookData> & {
+    event: typeof CRYPTONLY_WEBHOOK_EVENT_X402_PAYMENT_SETTLED;
+  };
+
+export type CryptonlyX402PaymentFailedWebhookBody =
+  CryptonlyOutboundWebhookBody<X402PaymentWebhookData> & {
+    event: typeof CRYPTONLY_WEBHOOK_EVENT_X402_PAYMENT_FAILED;
   };

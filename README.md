@@ -51,8 +51,7 @@ console.log(invoice);
 
 - Typed client for the Cryptonly merchant API
 - Invoice creation and management
-- Crypto **deposits** (one-shot top-up addresses)
-- **Address provision** (reusable pool addresses per customer)
+- Crypto **deposits** (a dedicated address per deposit)
 - Withdrawal creation and lookup (quote + commit), with automatic virtual balance top-up when needed
 - Merchant account operations
 - Supported crypto and fiat currency directory
@@ -73,7 +72,7 @@ Import **`verifyInvoiceWebhook`**, **`verifyWithdrawalWebhook`**, or **`verifyDe
 |----------------|----------|-----------|
 | `invoice.statusChanged` | `verifyInvoiceWebhook` | Invoice status transitions (includes linked deposit settlement on the invoice payload) |
 | `withdrawal.statusChanged` | `verifyWithdrawalWebhook` | Withdrawal status transitions |
-| `deposit.statusChanged` | `verifyDepositWebhook` | Standalone merchant deposits and address-provision **payment** deposits (not invoice-linked deposits) |
+| `deposit.statusChanged` | `verifyDepositWebhook` | Standalone merchant deposits (not invoice-linked deposits) |
 
 The `data` object largely matches merchant **GET** invoice, **GET** withdrawal, or **GET** deposit; the account UUID is **`accountId`**. Webhooks include optional `previousStatus`.
 
@@ -177,7 +176,7 @@ The `Cryptonly` client exposes six resource clients. Request/response types are 
 | `invoice` | `create`, `list`, `get`, `cancel` |
 | `withdrawal` | `quote`, `commit`, `list`, `get` |
 | `deposit` | `create`, `list`, `get` |
-| `addressProvision` | `create`, `get` |
+| `addressProvision` | `create`, `get` (deprecated, HTTP 503) |
 | `accounts` | `list`, `create` |
 | `currencies` | `list`, `listFiat` |
 
@@ -198,8 +197,8 @@ Use SDK methods instead of constructing `x-tenant-api-key` headers manually.
 - `POST /deposit` — `deposit.create`
 - `GET /deposit/list` — `deposit.list`
 - `GET /deposit` — `deposit.get`
-- `POST /address-provision` — `addressProvision.create`
-- `GET /address-provision` — `addressProvision.get`
+- `POST /address-provision` — `addressProvision.create` (deprecated)
+- `GET /address-provision` — `addressProvision.get` (deprecated)
 - `GET /accounts` — `accounts.list`
 - `POST /accounts` — `accounts.create`
 - `GET /currencies` — `currencies.list` (optional `network` query)
@@ -235,22 +234,17 @@ If the withdrawal balance can't cover `amount` + on-chain fee and `allowAutoConv
 
 | Method | HTTP | Purpose |
 |--------|------|---------|
-| `create` | `POST /deposit` | One-shot crypto top-up address. Body: `CreateDepositParams` — `accountId`, `cryptoCurrencyCode`, `orderId`; optional `customerId`. Returns `id`, `address`, `minimumAmount`, `createdAt`, `expiresAt`, `qrCode`. |
+| `create` | `POST /deposit` | Dedicated crypto top-up address. Body: `CreateDepositParams` — `accountId`, `cryptoCurrencyCode`, `orderId`; optional `customerId`. Returns `id`, `address`, `minimumAmount`, `createdAt`, `expiresAt`, `qrCode`. |
 | `list` | `GET /deposit/list` | Paginated deposits. Query: `accountId`, optional `status`, `page`, `limit`. |
 | `get` | `GET /deposit` | Single deposit. Query: `accountId`, `id` or `orderId`. |
 
 `deposit.get` validates like invoice lookup (`accountId` + `id` or `orderId`) or throws **`TypeError`**. Idempotent retries: reuse the same `orderId` on `create`.
 
-### `client.addressProvision`
+Every deposit gets its own address. The payer covers the network fee of sweeping it: `MerchantCurrency.depositNetworkFee` shows the current fee, the completed deposit's `settlement.depositNetworkFeeAmount` shows the fee withheld (before the commission), and invoices add it on top of the crypto amount at checkout. `deposit.create` fails with HTTP 503 `CRYPTONLY_EXCEPTION_DEPOSIT_FEE_QUOTE_UNAVAILABLE` while a currency has no live fee quote (`depositNetworkFee: null`); retry shortly.
 
-Reserve a **reusable** pool address for a customer (repeat top-ups to the same address until expiry).
+### `client.addressProvision` (deprecated)
 
-| Method | HTTP | Purpose |
-|--------|------|---------|
-| `create` | `POST /address-provision` | Body: `CreateAddressProvisionParams` — `accountId`, `cryptoCurrencyCode`, `customerId`; optional `expiresInMinutes` (15–90, server default 30). Response shape matches deposit create; `id` is the provision id. Includes `createdAt`, `expiresAt`. |
-| `get` | `GET /address-provision` | Query: `accountId`, `id`. Returns status (`active` \| `expired` \| `closed`), `createdAt`, and address fields. |
-
-Exported bounds: `ADDRESS_PROVISION_MIN_EXPIRES_MINUTES`, `ADDRESS_PROVISION_MAX_EXPIRES_MINUTES`, `ADDRESS_PROVISION_DEFAULT_EXPIRES_MINUTES`, `ADDRESS_PROVISION_GRACE_MINUTES`.
+Address provisioning is temporarily disabled: both `create` and `get` fail with HTTP 503 `CRYPTONLY_EXCEPTION_ADDRESS_PROVISION_TEMPORARILY_DISABLED`. Use `deposit.create` for each payment.
 
 ### `client.accounts`
 
@@ -368,24 +362,6 @@ const deposit = await client.deposit.create({
 });
 
 console.log(deposit.address, deposit.qrCode);
-```
-
-### Reserve an address provision
-
-```ts
-const provision = await client.addressProvision.create({
-  accountId: 'acc_123',
-  cryptoCurrencyCode: 'USDT_TRC20',
-  customerId: 'cust_456',
-  expiresInMinutes: 60,
-});
-
-const status = await client.addressProvision.get({
-  accountId: 'acc_123',
-  id: provision.id,
-});
-
-console.log(status.status, status.address);
 ```
 
 ---
@@ -508,7 +484,6 @@ For full API behavior and product-level flows, see the [Cryptonly docs](https://
 - API authorization
 - invoices
 - deposits
-- address provision
 - withdrawals
 - idempotency
 - webhooks
