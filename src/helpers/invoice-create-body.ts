@@ -3,24 +3,18 @@ import type { CreateInvoiceApiKeyRequest, CreateInvoiceParams } from '../types/i
 
 /**
  * Builds the wire JSON body for `POST /invoice`. Fills `orderId` when missing
- * and ensures `accountId` / `fiatCurrencyCode` for the request.
+ * and requires `fiatCurrencyCode`.
  */
 export function finalizeInvoiceCreateBody(
   params: CreateInvoiceParams,
 ): CreateInvoiceApiKeyRequest {
-  const { ...rest } = params;
-  const accountId = rest.accountId;
-  if (!accountId) {
-    throw new TypeError('invoice.create: `accountId` is required.');
-  }
-  const fiat = rest.fiatCurrencyCode;
+  const fiat = params.fiatCurrencyCode;
   if (!fiat) {
     throw new TypeError('invoice.create: set `fiatCurrencyCode` (e.g. "USD").');
   }
-  const orderId = rest.orderId ?? newSdkOrderId();
+  const orderId = params.orderId ?? newSdkOrderId();
   return {
-    ...rest,
-    accountId,
+    ...params,
     orderId,
     fiatCurrencyCode: fiat,
   };

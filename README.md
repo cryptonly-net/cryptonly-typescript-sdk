@@ -40,7 +40,6 @@ const client = new Cryptonly({
 });
 
 const invoice = await client.invoice.create({
-  accountId: process.env.CRYPTONLY_ACCOUNT_ID!,
   amount: 100,
   fiatCurrencyCode: 'USD',
   description: 'Order #123',
@@ -58,7 +57,6 @@ console.log(invoice);
 - Invoice creation and management
 - Crypto **deposits** (a dedicated address per deposit)
 - Withdrawal creation and lookup (quote + commit), with automatic virtual balance top-up when needed
-- Merchant account operations
 - Supported crypto and fiat currency directory
 - Built-in API key authentication
 - Idempotent create operations via `orderId` (invoices, deposits, withdrawals)
@@ -69,7 +67,7 @@ console.log(invoice);
 
 ## Verifying inbound webhooks
 
-When Cryptonly POSTs to your `webhookUrl`, the body is JSON (`event`, `data`, `timestamp`) and the `x-webhook-signature` header is **hex HMAC-SHA256** over the **exact raw request body** (UTF-8), using your tenant webhook signing secret.
+When Cryptonly POSTs to your `webhookUrl`, the body is JSON (`event`, `data`, `timestamp`) and the `x-webhook-signature` header is **hex HMAC-SHA256** over the **exact raw request body** (UTF-8), using the account webhook signing secret.
 
 Import **`verifyInvoiceWebhook`**, **`verifyWithdrawalWebhook`**, or **`verifyDepositWebhook`**: pass the raw body as a **UTF-8 string** or **`Buffer`** (same bytes Cryptonly signed), the `x-webhook-signature` header value, and the secret. Each returns `{ ok: true, envelope }` or `{ ok: false, reason }` (e.g. wrong signature or wrong `event`). Related types (`WebhookVerificationRawBody`, `InvoiceStatusChangedWebhookData`, `DepositStatusChangedWebhookData`, …) and event constants are exported from the same package.
 
@@ -81,7 +79,7 @@ Import **`verifyInvoiceWebhook`**, **`verifyWithdrawalWebhook`**, or **`verifyDe
 
 The `data` object largely matches merchant **GET** invoice, **GET** withdrawal, or **GET** deposit; the account UUID is **`accountId`**. Webhooks include optional `previousStatus`.
 
-Obtain and rotate your webhook signing secret in the Cryptonly **admin app → Settings → Security** (the full key is shown once after rotate; store it like an API key). The signature is **HMAC-SHA256** over the exact raw request body bytes (UTF-8), sent as lowercase hex in `x-webhook-signature`. For threat model, replay handling, default webhook URLs, and integration examples, see [Cryptonly docs → webhooks](https://cryptonly.net/docs).
+Obtain and rotate the webhook signing secret in the Cryptonly dashboard on the account’s **Security** settings (the full key is shown once after rotate; store it like an API key). The API key selects that account. The signature is **HMAC-SHA256** over the exact raw request body bytes (UTF-8), sent as lowercase hex in `x-webhook-signature`. For threat model, replay handling, default webhook URLs, and integration examples, see [Cryptonly docs → webhooks](https://cryptonly.net/docs).
 
 ---
 
@@ -174,14 +172,13 @@ This constant is also exported for custom `fetch` calls and lower-level integrat
 
 ## API surface
 
-The `Cryptonly` client exposes five resource clients. Request/response types are exported from `@cryptonly/sdk` (see `CreateInvoiceParams`, `CreateDepositParams`, `WithdrawalQuoteRequest`, and related types).
+The `Cryptonly` client exposes resource clients. The API key selects the account, so requests do not take an account id. Response and webhook payloads still include `accountId`. Request/response types are exported from `@cryptonly/sdk` (see `CreateInvoiceParams`, `CreateDepositParams`, `WithdrawalQuoteRequest`, and related types).
 
 | Client property | Methods |
 |-----------------|---------|
 | `invoice` | `create`, `list`, `get`, `cancel` |
 | `withdrawal` | `quote`, `commit`, `list`, `get` |
 | `deposit` | `create`, `list`, `get` |
-| `accounts` | `list`, `create` |
 | `currencies` | `list`, `listFiat` |
 
 **Top-level exports (not on `client`):** `verifyInvoiceWebhook`, `verifyWithdrawalWebhook`, `verifyDepositWebhook`, `CryptonlyApiError`, `newSdkOrderId`, merchant API constants, webhook event constants, and error code constants.
@@ -190,7 +187,7 @@ The `Cryptonly` client exposes five resource clients. Request/response types are
 
 - `POST /invoice` — `invoice.create`
 - `GET /invoice/list` — `invoice.list`
-- `GET /invoice` — `invoice.get` (query: `accountId`, `id` or `orderId`)
+- `GET /invoice` — `invoice.get` (query: `id` or `orderId`)
 - `POST /invoice/cancel` — `invoice.cancel`
 - `POST /withdrawal/quote` — `withdrawal.quote`
 - `POST /withdrawal/commit` — `withdrawal.commit`
@@ -199,8 +196,6 @@ The `Cryptonly` client exposes five resource clients. Request/response types are
 - `POST /deposit` — `deposit.create`
 - `GET /deposit/list` — `deposit.list`
 - `GET /deposit` — `deposit.get`
-- `GET /accounts` — `accounts.list`
-- `POST /accounts` — `accounts.create`
 - `GET /currencies` — `currencies.list` (optional `network` query)
 - `GET /currencies/fiat` — `currencies.listFiat`
 
@@ -208,12 +203,12 @@ The `Cryptonly` client exposes five resource clients. Request/response types are
 
 | Method | HTTP | Purpose |
 |--------|------|---------|
-| `create` | `POST /invoice` | Create a hosted-payment invoice. Body: `CreateInvoiceParams` — `accountId`, `fiatCurrencyCode`, `orderId` (or omit to auto-generate), `amount` and/or `items` (a positive `amount` is the total; items compute the total only when `amount` is omitted), `description`, `returnUrl`, `successUrl`, `failedUrl`, `customerId`, etc. Response `expiresAt` is a **`Date`**. |
-| `list` | `GET /invoice/list` | Paginated list. Query: `accountId`, optional `status`, `page`, `limit`. Returns `{ data, total, page, limit, hasMore }`. |
-| `get` | `GET /invoice` | Single invoice. Query: `accountId`, `id` or `orderId`. |
+| `create` | `POST /invoice` | Create a hosted-payment invoice. Body: `CreateInvoiceParams` — `fiatCurrencyCode`, `orderId` (or omit to auto-generate), `amount` and/or `items` (a positive `amount` is the total; items compute the total only when `amount` is omitted), `description`, `returnUrl`, `successUrl`, `failedUrl`, `customerId`, etc. Response `expiresAt` is a **`Date`**. |
+| `list` | `GET /invoice/list` | Paginated list. Optional query: `status`, `page`, `limit`. Returns `{ data, total, page, limit, hasMore }`. |
+| `get` | `GET /invoice` | Single invoice. Query: `id` or `orderId`. |
 | `cancel` | `POST /invoice/cancel` | Cancel a pending invoice. Same query as `get`. |
 
-`invoice.get` and `invoice.cancel` validate locally: `accountId` required; at least one of `id` or `orderId` — otherwise **`TypeError`**.
+`invoice.get` and `invoice.cancel` validate locally: at least one of `id` or `orderId` — otherwise **`TypeError`**.
 
 ### `client.withdrawal`
 
@@ -221,12 +216,12 @@ Two-step flow: **`quote`** then **`commit`**. The quote does not reserve balance
 
 | Method | HTTP | Purpose |
 |--------|------|---------|
-| `quote` | `POST /withdrawal/quote` | Stage 1. Body: `WithdrawalQuoteRequest` — `accountId`, `amount`, `cryptoCurrencyCode`, `address`, optional `orderId` (idempotency), optional `allowAutoConvert`. |
+| `quote` | `POST /withdrawal/quote` | Stage 1. Body: `WithdrawalQuoteRequest` — `amount`, `cryptoCurrencyCode`, `address`, optional `orderId` (idempotency), optional `allowAutoConvert`. |
 | `commit` | `POST /withdrawal/commit` | Stage 2. Body: `{ quoteId }`. |
-| `list` | `GET /withdrawal/list` | Paginated list. Query: `accountId`, optional `status`, `page`, `limit`. |
-| `get` | `GET /withdrawal` | Single withdrawal. Query: `accountId`, `id` or `orderId`. |
+| `list` | `GET /withdrawal/list` | Paginated list. Optional query: `status`, `page`, `limit`. |
+| `get` | `GET /withdrawal` | Single withdrawal. Query: `id` or `orderId`. |
 
-`withdrawal.get` validates locally (`accountId` + `id` or `orderId`) or throws **`TypeError`**.
+`withdrawal.get` validates locally (`id` or `orderId`) or throws **`TypeError`**.
 
 If the withdrawal balance can't cover `amount` + on-chain fee and `allowAutoConvert: true` was set, `WithdrawalQuote.autoConvert` describes a conversion (`fromAssetCode` → `toAssetCode`) that tops it up at commit time.
 
@@ -234,24 +229,17 @@ If the withdrawal balance can't cover `amount` + on-chain fee and `allowAutoConv
 
 | Method | HTTP | Purpose |
 |--------|------|---------|
-| `create` | `POST /deposit` | Dedicated crypto top-up address. Body: `CreateDepositParams` — `accountId`, `cryptoCurrencyCode`, `orderId`; optional `customerId`. Returns `id`, `address`, `minimumAmount`, `createdAt`, `expiresAt`, `qrCode`. |
-| `list` | `GET /deposit/list` | Paginated deposits. Query: `accountId`, optional `status`, `page`, `limit`. |
-| `get` | `GET /deposit` | Single deposit. Query: `accountId`, `id` or `orderId`. |
+| `create` | `POST /deposit` | Dedicated crypto top-up address. Body: `CreateDepositParams` — `cryptoCurrencyCode`, `orderId`; optional `customerId`. Returns `id`, `address`, `minimumAmount`, `createdAt`, `expiresAt`, `qrCode`. |
+| `list` | `GET /deposit/list` | Paginated deposits. Optional query: `status`, `page`, `limit`. |
+| `get` | `GET /deposit` | Single deposit. Query: `id` or `orderId`. |
 
-`deposit.get` validates like invoice lookup (`accountId` + `id` or `orderId`) or throws **`TypeError`**. Idempotent retries: reuse the same `orderId` on `create`.
+`deposit.get` validates like invoice lookup (`id` or `orderId`) or throws **`TypeError`**. Idempotent retries: reuse the same `orderId` on `create`.
 
 Every deposit gets its own address. The payer covers the network fee of sweeping it: `MerchantCurrency.depositNetworkFee` is the current quote, the fee is withheld before commission and shows up in `settlement.netAmount`, and invoices add it on top of the crypto amount at checkout.
 
-### `client.accounts`
-
-| Method | HTTP | Purpose |
-|--------|------|---------|
-| `list` | `GET /accounts` | All merchant accounts for the tenant. |
-| `create` | `POST /accounts` | Body: `CreateTenantAccountRequest`. |
-
 ### `client.currencies`
 
-Read-only directory (no account id required).
+Read-only directory.
 
 | Method | HTTP | Purpose |
 |--------|------|---------|
@@ -293,7 +281,6 @@ const client = new Cryptonly({
 });
 
 const invoice = await client.invoice.create({
-  accountId: process.env.CRYPTONLY_ACCOUNT_ID!,
   amount: 100,
   fiatCurrencyCode: 'USD',
   description: 'Order #123',
@@ -301,14 +288,6 @@ const invoice = await client.invoice.create({
 });
 
 console.log(invoice);
-```
-
-### List accounts
-
-```ts
-const accounts = await client.accounts.list();
-
-console.log(accounts);
 ```
 
 ### Create a withdrawal
@@ -322,7 +301,6 @@ withdrawal. Omit `orderId` to get a fresh, non-deduplicating quote.
 
 ```ts
 const quote = await client.withdrawal.quote({
-  accountId: 'acc_123',
   amount: '50',
   cryptoCurrencyCode: 'USDT_TRC20',
   address: 'TJn22ewJPN89yNtrnBkagsunbrLnPyQCgs',
@@ -340,7 +318,6 @@ console.log(withdrawal);
 
 ```ts
 const withdrawal = await client.withdrawal.get({
-  accountId: 'acc_123',
   id: 'wd_123',
 });
 
@@ -351,7 +328,6 @@ console.log(withdrawal);
 
 ```ts
 const deposit = await client.deposit.create({
-  accountId: 'acc_123',
   cryptoCurrencyCode: 'USDT_TRC20',
   orderId: 'deposit_123',
   customerId: 'cust_456', // optional
@@ -483,7 +459,6 @@ For full API behavior and product-level flows, see the [Cryptonly docs](https://
 - withdrawals
 - idempotency
 - webhooks
-- merchant accounts
 
 ---
 

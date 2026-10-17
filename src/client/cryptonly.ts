@@ -1,5 +1,4 @@
 import { MERCHANT_API_BASE_URL, SANDBOX_MERCHANT_API_BASE_URL } from '../config/constants';
-import { AccountsClient } from '../resources/accounts.client';
 import { CurrenciesClient } from '../resources/currencies.client';
 import { DepositClient } from '../resources/deposit.client';
 import { InvoiceClient } from '../resources/invoice.client';
@@ -61,7 +60,6 @@ export type CryptonlyConfig = {
  *   apiKey: process.env.CRYPTONLY_API_KEY!,
  * });
  * const inv = await client.invoice.create({
- *   accountId: process.env.CRYPTONLY_ACCOUNT_ID!,
  *   amount: 100,
  *   fiatCurrencyCode: 'USD',
  *   description: 'Order #123',
@@ -86,11 +84,6 @@ export class Cryptonly {
    * Create and list withdrawals, fetch by id or `orderId`.
    */
   readonly withdrawal: WithdrawalClient;
-
-  /**
-   * List and create merchant (tenant) accounts.
-   */
-  readonly accounts: AccountsClient;
 
   /**
    * Read-only directory of supported crypto and fiat currencies, with
@@ -133,7 +126,6 @@ export class Cryptonly {
     this.deposit = new DepositClient(this._ctx);
     this.invoice = new InvoiceClient(this._ctx);
     this.withdrawal = new WithdrawalClient(this._ctx);
-    this.accounts = new AccountsClient(this._ctx);
     this.currencies = new CurrenciesClient(this._ctx);
     this.x402Settlements = new X402SettlementsClient(this._ctx);
   }

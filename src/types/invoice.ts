@@ -15,7 +15,6 @@ export interface InvoiceItem {
  * `fiatCurrencyCode` are required in the request body.
  */
 export interface CreateInvoiceApiKeyRequest {
-  accountId: string;
   amount?: number;
   items?: InvoiceItem[];
   fiatCurrencyCode: string;
@@ -41,7 +40,7 @@ export interface CreateInvoiceApiKeyRequest {
 
 /**
  * Parameters for `new Cryptonly(...).invoice.create(...)`. Looser than the wire body:
- * `accountId` is required; `orderId` is optional
+ * `orderId` is optional
  * and the client generates one when omitted (not idempotent for retries - pass
  * your own for idempotency). A positive `amount` is the invoice total even when
  * `items` are also sent; items are used to compute the total only when `amount`
@@ -116,16 +115,14 @@ export type InvoiceListResponse = PaginatedList<Invoice>;
 
 /** Query for `GET /invoice/list` (and optional `status` filter). */
 export interface GetInvoicesQuery extends PaginationQuery {
-  accountId: string;
   status?: InvoiceStatus;
 }
 
 /**
- * Query for `GET /invoice` or `POST /invoice/cancel` - which invoice is
- * selected by `id` and/or `orderId` (plus `accountId` scope).
+ * Query for `GET /invoice` or `POST /invoice/cancel`. The invoice is selected
+ * by `id` and/or `orderId`. The account comes from the API key.
  */
 export interface GetInvoiceQuery {
-  accountId: string;
   id?: string;
   orderId?: string;
 }

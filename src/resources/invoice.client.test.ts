@@ -54,7 +54,6 @@ describe('InvoiceClient.create', () => {
     const client = buildClient({ fetchImpl: fake.fetch });
 
     const data = await client.invoice.create({
-      accountId: 'acc-1',
       amount: 100,
       fiatCurrencyCode: 'USD',
       orderId: 'ord-1',
@@ -67,7 +66,6 @@ describe('InvoiceClient.create', () => {
     expect(req.headers['x-tenant-api-key']).toBe('sk_live_test');
     expect(req.headers['content-type']).toBe('application/json');
     expect(req.body).toEqual({
-      accountId: 'acc-1',
       amount: 100,
       fiatCurrencyCode: 'USD',
       orderId: 'ord-1',
@@ -100,7 +98,6 @@ describe('InvoiceClient.create', () => {
     const client = buildClient({ fetchImpl: fake.fetch });
 
     await client.invoice.create({
-      accountId: 'acc-2',
       amount: 50,
       fiatCurrencyCode: 'USD',
     });
@@ -108,7 +105,6 @@ describe('InvoiceClient.create', () => {
     const req = fake.lastRequest();
     expect(req.body).toEqual(
       expect.objectContaining({
-        accountId: 'acc-2',
         amount: 50,
         fiatCurrencyCode: 'USD',
       }),
@@ -124,7 +120,6 @@ describe('InvoiceClient.create', () => {
     const client = buildClient({ fetchImpl: fake.fetch });
     await expect(
       client.invoice.create({
-        accountId: 'acc-1',
         amount: 1,
         fiatCurrencyCode: 'USD',
         orderId: 'ord-1',
@@ -147,7 +142,6 @@ describe('InvoiceClient.create', () => {
     let caught: unknown;
     try {
       await client.invoice.create({
-        accountId: 'acc-1',
         amount: 1,
         fiatCurrencyCode: 'USD',
         orderId: 'ord-1',
@@ -185,7 +179,6 @@ describe('InvoiceClient.list', () => {
     const client = buildClient({ fetchImpl: fake.fetch });
 
     const res = await client.invoice.list({
-      accountId: 'acc-1',
       status: InvoiceStatus.CREATED,
       page: 1,
       limit: 20,
@@ -194,7 +187,7 @@ describe('InvoiceClient.list', () => {
     const req = fake.lastRequest();
     expect(req.method).toBe('GET');
     expect(req.url).toBe(
-      `${BASE}/invoice/list?accountId=acc-1&status=created&page=1&limit=20`,
+      `${BASE}/invoice/list?status=created&page=1&limit=20`,
     );
     expect(req.body).toBeUndefined();
     expect(res.total).toBe(1);
@@ -210,14 +203,14 @@ describe('InvoiceClient.list', () => {
     const fake = createFakeFetch();
     fake.setResponse({ body: { data: null, total: 0, page: 1, limit: 20, hasMore: false } });
     const client = buildClient({ fetchImpl: fake.fetch });
-    await expect(client.invoice.list({ accountId: 'acc-1' })).rejects.toThrow(
+    await expect(client.invoice.list({})).rejects.toThrow(
       'invoice.list: response missing `data` array',
     );
   });
 });
 
 describe('InvoiceClient.get', () => {
-  it('sends GET /invoice with id+accountId in the query', async () => {
+  it('sends GET /invoice with id in the query', async () => {
     const fake = createFakeFetch();
     fake.setResponse({
       body: {
@@ -229,11 +222,11 @@ describe('InvoiceClient.get', () => {
     });
     const client = buildClient({ fetchImpl: fake.fetch });
 
-    const inv = await client.invoice.get({ accountId: 'acc-1', id: 'inv-1' });
+    const inv = await client.invoice.get({ id: 'inv-1' });
 
     const req = fake.lastRequest();
     expect(req.method).toBe('GET');
-    expect(req.url).toBe(`${BASE}/invoice?accountId=acc-1&id=inv-1`);
+    expect(req.url).toBe(`${BASE}/invoice?id=inv-1`);
     expect(inv.id).toBe('inv-1');
     expect(inv.createdAt).toBe('2026-01-01T00:00:00.000Z');
     expect(inv.paymentPageUrl).toBe('https://pay.example/inv-1');
@@ -243,19 +236,16 @@ describe('InvoiceClient.get', () => {
     const fake = createFakeFetch();
     fake.setResponse({ body: { data: { ...sampleWireInvoice, paymentPageUrl: 'https://pay.example/inv-1' } } });
     const client = buildClient({ fetchImpl: fake.fetch });
-    await client.invoice.get({ accountId: 'acc-1', orderId: 'ord-1' });
+    await client.invoice.get({ orderId: 'ord-1' });
 
-    expect(fake.lastRequest().url).toBe(`${BASE}/invoice?accountId=acc-1&orderId=ord-1`);
+    expect(fake.lastRequest().url).toBe(`${BASE}/invoice?orderId=ord-1`);
   });
 
-  it('throws TypeError before fetch when accountId or selector is missing', async () => {
+  it('throws TypeError before fetch when the selector is missing', async () => {
     const fake = createFakeFetch();
     fake.setResponse({ body: { data: { ...sampleWireInvoice, paymentPageUrl: 'https://pay.example/inv-1' } } });
     const client = buildClient({ fetchImpl: fake.fetch });
-    await expect(client.invoice.get({ accountId: '', id: 'inv-1' })).rejects.toThrow(
-      'invoice.get: `accountId` is required.',
-    );
-    await expect(client.invoice.get({ accountId: 'acc-1' })).rejects.toThrow(
+    await expect(client.invoice.get({})).rejects.toThrow(
       'invoice.get: supply `id` or `orderId`',
     );
     expect(fake.allRequests()).toHaveLength(0);
@@ -269,18 +259,18 @@ describe('InvoiceClient.cancel', () => {
     const client = buildClient({ fetchImpl: fake.fetch });
 
     await expect(
-      client.invoice.cancel({ accountId: 'acc-1', id: 'inv-1' }),
+      client.invoice.cancel({ id: 'inv-1' }),
     ).resolves.toBeUndefined();
     const req = fake.lastRequest();
     expect(req.method).toBe('POST');
-    expect(req.url).toBe(`${BASE}/invoice/cancel?accountId=acc-1&id=inv-1`);
+    expect(req.url).toBe(`${BASE}/invoice/cancel?id=inv-1`);
   });
 
   it('throws TypeError before fetch when query is invalid', async () => {
     const fake = createFakeFetch();
     fake.setResponse({ status: 204, text: '' });
     const client = buildClient({ fetchImpl: fake.fetch });
-    await expect(client.invoice.cancel({ accountId: 'acc-1' })).rejects.toThrow(
+    await expect(client.invoice.cancel({})).rejects.toThrow(
       'invoice.cancel: supply `id` or `orderId`',
     );
     expect(fake.allRequests()).toHaveLength(0);

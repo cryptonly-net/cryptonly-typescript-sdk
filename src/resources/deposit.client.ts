@@ -39,12 +39,12 @@ export class DepositClient {
   }
 
   /** `GET /deposit/list` - paginated merchant top-up deposits. */
-  async list(q: GetDepositsQuery): Promise<DepositListResponse> {
-    const { accountId, status, page, limit } = q;
+  async list(q: GetDepositsQuery = {}): Promise<DepositListResponse> {
+    const { status, page, limit } = q;
     const json = await merchantRequest<DepositListResponse>({
       method: 'GET',
       path: this.route('/list'),
-      query: { accountId, status, page, limit },
+      query: { status, page, limit },
       ...this.transportOpts(),
     });
     if (json == null || !Array.isArray(json.data)) {
@@ -56,11 +56,11 @@ export class DepositClient {
   /** `GET /deposit` - single deposit by `id` or `orderId`. */
   async get(q: GetDepositQuery): Promise<Deposit> {
     assertDepositLookupQuery(q, 'deposit.get');
-    const { accountId, id, orderId } = q;
+    const { id, orderId } = q;
     const json = await merchantRequest<DepositDataResponse>({
       method: 'GET',
       path: this.route(''),
-      query: { accountId, id, orderId },
+      query: { id, orderId },
       ...this.transportOpts(),
     });
     if (!json?.data) {
