@@ -8,10 +8,7 @@ export interface SettlementBreakdown {
   networkFeeAmount: number;
   networkFeeAmountUsd: number;
   networkFeeCurrencyCode: string;
-  /** Payer network fee withheld to sweep the deposit address, in the deposit currency. */
-  depositNetworkFeeAmount: number;
-  depositNetworkFeeAmountUsd: number;
-  /** `amountPaid - depositNetworkFeeAmount - commissionAmount`. */
+  /** `amountPaid`, minus the withheld deposit sweep fee, minus `commissionAmount`. */
   netAmount: number;
   netAmountUsd: number;
   txHash?: string;

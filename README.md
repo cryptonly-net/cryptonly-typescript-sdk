@@ -240,7 +240,7 @@ If the withdrawal balance can't cover `amount` + on-chain fee and `allowAutoConv
 
 `deposit.get` validates like invoice lookup (`accountId` + `id` or `orderId`) or throws **`TypeError`**. Idempotent retries: reuse the same `orderId` on `create`.
 
-Every deposit gets its own address. The payer covers the network fee of sweeping it: `MerchantCurrency.depositNetworkFee` shows the current fee, the completed deposit's `settlement.depositNetworkFeeAmount` shows the fee withheld (before the commission), and invoices add it on top of the crypto amount at checkout. `deposit.create` fails with HTTP 503 `CRYPTONLY_EXCEPTION_DEPOSIT_FEE_QUOTE_UNAVAILABLE` while a currency has no live fee quote (`depositNetworkFee: null`); retry shortly.
+Every deposit gets its own address. The payer covers the network fee of sweeping it: `MerchantCurrency.depositNetworkFee` is the current quote, the fee is withheld before commission and shows up in `settlement.netAmount`, and invoices add it on top of the crypto amount at checkout.
 
 ### `client.accounts`
 
