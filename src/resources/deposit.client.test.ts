@@ -44,7 +44,6 @@ describe('DepositClient.create', () => {
     const client = buildClient({ fetchImpl: fake.fetch });
 
     const data = await client.deposit.create({
-      accountId: 'acc-1',
       cryptoCurrencyCode: 'USDT',
       orderId: 'ord-1',
     });
@@ -54,7 +53,6 @@ describe('DepositClient.create', () => {
     expect(req.url).toBe(`${BASE}/deposit`);
     expect(req.headers['x-tenant-api-key']).toBe('sk_live_test');
     expect(req.body).toEqual({
-      accountId: 'acc-1',
       cryptoCurrencyCode: 'USDT',
       orderId: 'ord-1',
     });
@@ -68,7 +66,6 @@ describe('DepositClient.create', () => {
     const client = buildClient({ fetchImpl: fake.fetch });
     await expect(
       client.deposit.create({
-        accountId: 'acc-1',
         cryptoCurrencyCode: 'USDT',
         orderId: 'ord-1',
       }),
@@ -91,7 +88,6 @@ describe('DepositClient.list', () => {
     const client = buildClient({ fetchImpl: fake.fetch });
 
     const res = await client.deposit.list({
-      accountId: 'acc-1',
       status: DepositStatus.CREATED,
       page: 1,
       limit: 20,
@@ -100,7 +96,7 @@ describe('DepositClient.list', () => {
     const req = fake.lastRequest();
     expect(req.method).toBe('GET');
     expect(req.url).toBe(
-      `${BASE}/deposit/list?accountId=acc-1&status=created&page=1&limit=20`,
+      `${BASE}/deposit/list?status=created&page=1&limit=20`,
     );
     expect(res.data).toHaveLength(1);
     expect(res.data[0].id).toBe('dep-1');
@@ -110,23 +106,23 @@ describe('DepositClient.list', () => {
     const fake = createFakeFetch();
     fake.setResponse({ body: { data: null, total: 0, page: 1, limit: 20, hasMore: false } });
     const client = buildClient({ fetchImpl: fake.fetch });
-    await expect(client.deposit.list({ accountId: 'acc-1' })).rejects.toThrow(
+    await expect(client.deposit.list({})).rejects.toThrow(
       'deposit.list: response missing `data` array',
     );
   });
 });
 
 describe('DepositClient.get', () => {
-  it('sends GET /deposit with id+accountId in the query', async () => {
+  it('sends GET /deposit with id in the query', async () => {
     const fake = createFakeFetch();
     fake.setResponse({ body: { data: sampleWireDeposit } });
     const client = buildClient({ fetchImpl: fake.fetch });
 
-    const dep = await client.deposit.get({ accountId: 'acc-1', id: 'dep-1' });
+    const dep = await client.deposit.get({ id: 'dep-1' });
 
     const req = fake.lastRequest();
     expect(req.method).toBe('GET');
-    expect(req.url).toBe(`${BASE}/deposit?accountId=acc-1&id=dep-1`);
+    expect(req.url).toBe(`${BASE}/deposit?id=dep-1`);
     expect(dep.id).toBe('dep-1');
   });
 
@@ -134,7 +130,7 @@ describe('DepositClient.get', () => {
     const fake = createFakeFetch();
     fake.setResponse({ body: { data: sampleWireDeposit } });
     const client = buildClient({ fetchImpl: fake.fetch });
-    await expect(client.deposit.get({ accountId: 'acc-1' })).rejects.toThrow(
+    await expect(client.deposit.get({})).rejects.toThrow(
       'deposit.get: supply `id` or `orderId`',
     );
     expect(fake.allRequests()).toHaveLength(0);
@@ -148,7 +144,7 @@ describe('DepositClient.get', () => {
     });
     const client = buildClient({ fetchImpl: fake.fetch });
     await expect(
-      client.deposit.get({ accountId: 'acc-1', id: 'missing' }),
+      client.deposit.get({ id: 'missing' }),
     ).rejects.toBeInstanceOf(CryptonlyApiError);
   });
 });

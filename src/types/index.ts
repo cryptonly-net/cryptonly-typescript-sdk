@@ -1,5 +1,4 @@
 export * from './initiation';
-export * from './accounts';
 export * from './pagination';
 export * from './status';
 export * from './invoice';

@@ -74,12 +74,12 @@ export class WithdrawalClient {
   /**
    * `GET /withdrawal/list` - paginated withdrawals.
    */
-  async list(q: GetWithdrawalsQuery): Promise<WithdrawalListResponse> {
-    const { accountId, status, page, limit } = q;
+  async list(q: GetWithdrawalsQuery = {}): Promise<WithdrawalListResponse> {
+    const { status, page, limit } = q;
     const json = await merchantRequest<WithdrawalListResponse>({
       method: 'GET',
       path: this.route('/list'),
-      query: { accountId, status, page, limit },
+      query: { status, page, limit },
       ...this.transportOpts(),
     });
     if (json == null || !Array.isArray(json.data)) {
@@ -89,16 +89,15 @@ export class WithdrawalClient {
   }
 
   /**
-   * `GET /withdrawal` - a single withdrawal by `id` or
-   * `orderId` (and `accountId`).
+   * `GET /withdrawal` - a single withdrawal by `id` or `orderId`.
    */
   async get(q: GetWithdrawalQuery): Promise<Withdrawal> {
     assertWithdrawalLookupQuery(q);
-    const { accountId, id, orderId } = q;
+    const { id, orderId } = q;
     const json = await merchantRequest<WithdrawalDataResponse>({
       method: 'GET',
       path: this.route(''),
-      query: { accountId, id, orderId },
+      query: { id, orderId },
       ...this.transportOpts(),
     });
     if (json == null || json.data == null) {

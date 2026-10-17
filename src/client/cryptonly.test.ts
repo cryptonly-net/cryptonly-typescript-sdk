@@ -12,7 +12,7 @@ describe('Cryptonly constructor', () => {
     fake.setResponse({ body: { data: [] } });
     const client = new Cryptonly({ apiKey: 'k', fetch: fake.fetch });
 
-    await client.accounts.list();
+    await client.currencies.list();
 
     expect(fake.lastRequest().url.startsWith(MERCHANT_API_BASE_URL)).toBe(true);
   });
@@ -26,8 +26,8 @@ describe('Cryptonly constructor', () => {
       fetch: fake.fetch,
     });
 
-    await client.accounts.list();
+    await client.currencies.list();
 
-    expect(fake.lastRequest().url).toBe('https://staging.example/accounts');
+    expect(fake.lastRequest().url).toBe('https://staging.example/currencies');
   });
 });

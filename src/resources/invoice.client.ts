@@ -43,15 +43,15 @@ export class InvoiceClient {
   }
 
   /**
-   * `GET /invoice/list` - paginated list for a merchant
-   * account. Timestamps are ISO strings as in the API response.
+   * `GET /invoice/list` - paginated list for the API key's account.
+   * Timestamps are ISO strings as in the API response.
    */
-  async list(q: GetInvoicesQuery): Promise<InvoiceListResponse> {
-    const { accountId, status, page, limit } = q;
+  async list(q: GetInvoicesQuery = {}): Promise<InvoiceListResponse> {
+    const { status, page, limit } = q;
     const json = await merchantRequest<InvoiceListResponse>({
       method: 'GET',
       path: this.route('/list'),
-      query: { accountId, status, page, limit },
+      query: { status, page, limit },
       ...this.transportOpts(),
     });
     if (json == null || !Array.isArray(json.data)) {
@@ -65,11 +65,11 @@ export class InvoiceClient {
    */
   async get(q: GetInvoiceQuery): Promise<Invoice> {
     assertInvoiceLookupQuery(q, 'invoice.get');
-    const { accountId, id, orderId } = q;
+    const { id, orderId } = q;
     const json = await merchantRequest<InvoiceDataResponse>({
       method: 'GET',
       path: this.route(''),
-      query: { accountId, id, orderId },
+      query: { id, orderId },
       ...this.transportOpts(),
     });
     if (!json?.data) {
@@ -83,11 +83,11 @@ export class InvoiceClient {
    */
   async cancel(q: GetInvoiceQuery): Promise<void> {
     assertInvoiceLookupQuery(q, 'invoice.cancel');
-    const { accountId, id, orderId } = q;
+    const { id, orderId } = q;
     await merchantRequest({
       method: 'POST',
       path: this.route('/cancel'),
-      query: { accountId, id, orderId },
+      query: { id, orderId },
       emptyResponse: true,
       ...this.transportOpts(),
     });

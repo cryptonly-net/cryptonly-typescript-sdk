@@ -61,7 +61,6 @@ describe('WithdrawalClient.quote', () => {
     const client = buildClient(fake.fetch);
 
     const q = await client.withdrawal.quote({
-      accountId: 'acc-1',
       cryptoCurrencyCode: 'USDT_TRC20',
       address: 'TXabc',
       amount: 10,
@@ -72,7 +71,6 @@ describe('WithdrawalClient.quote', () => {
     expect(req.method).toBe('POST');
     expect(req.url).toBe(`${BASE}/withdrawal/quote`);
     expect(req.body).toEqual({
-      accountId: 'acc-1',
       cryptoCurrencyCode: 'USDT_TRC20',
       address: 'TXabc',
       amount: 10,
@@ -87,7 +85,6 @@ describe('WithdrawalClient.quote', () => {
     const client = buildClient(fake.fetch);
     await expect(
       client.withdrawal.quote({
-        accountId: 'acc-1',
         cryptoCurrencyCode: 'USDT_TRC20',
         address: 'TXabc',
         amount: 10,
@@ -139,7 +136,6 @@ describe('WithdrawalClient.list', () => {
     const client = buildClient(fake.fetch);
 
     const res = await client.withdrawal.list({
-      accountId: 'acc-1',
       status: WithdrawalStatus.CREATED,
       page: 1,
       limit: 20,
@@ -148,7 +144,7 @@ describe('WithdrawalClient.list', () => {
     const req = fake.lastRequest();
     expect(req.method).toBe('GET');
     expect(req.url).toBe(
-      `${BASE}/withdrawal/list?accountId=acc-1&status=created&page=1&limit=20`,
+      `${BASE}/withdrawal/list?status=created&page=1&limit=20`,
     );
     expect(res.data).toHaveLength(1);
     expect(res.data[0].id).toBe('w-1');
@@ -157,22 +153,22 @@ describe('WithdrawalClient.list', () => {
 });
 
 describe('WithdrawalClient.get', () => {
-  it('sends GET /withdrawal with id and accountId', async () => {
+  it('sends GET /withdrawal with id', async () => {
     const fake = createFakeFetch();
     fake.setResponse({ body: { data: sampleWireWithdrawal } });
     const client = buildClient(fake.fetch);
 
-    const w = await client.withdrawal.get({ accountId: 'acc-1', id: 'w-1' });
+    const w = await client.withdrawal.get({ id: 'w-1' });
 
-    expect(fake.lastRequest().url).toBe(`${BASE}/withdrawal?accountId=acc-1&id=w-1`);
+    expect(fake.lastRequest().url).toBe(`${BASE}/withdrawal?id=w-1`);
     expect(w.id).toBe('w-1');
   });
 
-  it('throws TypeError before fetch when accountId or selector is missing', async () => {
+  it('throws TypeError before fetch when the selector is missing', async () => {
     const fake = createFakeFetch();
     fake.setResponse({ body: { data: sampleWireWithdrawal } });
     const client = buildClient(fake.fetch);
-    await expect(client.withdrawal.get({ accountId: 'acc-1' })).rejects.toThrow(
+    await expect(client.withdrawal.get({})).rejects.toThrow(
       'withdrawal.get: supply `id` or `orderId`',
     );
     expect(fake.allRequests()).toHaveLength(0);

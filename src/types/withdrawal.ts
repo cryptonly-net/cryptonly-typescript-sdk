@@ -42,16 +42,14 @@ export type WithdrawalListResponse = PaginatedList<Withdrawal>;
 
 /** Query for `GET /withdrawal/list` (and optional `status` filter). */
 export interface GetWithdrawalsQuery extends PaginationQuery {
-  accountId: string;
   status?: WithdrawalStatus;
 }
 
 /**
- * Query for `GET /withdrawal` - a single record by `id` or `orderId` and
- * `accountId` scope.
+ * Query for `GET /withdrawal` - a single record by `id` or `orderId`.
+ * The account comes from the API key.
  */
 export interface GetWithdrawalQuery {
-  accountId: string;
   id?: string;
   orderId?: string;
 }
@@ -64,8 +62,6 @@ export interface GetWithdrawalQuery {
  * with the returned `quoteId` before that.
  */
 export interface WithdrawalQuoteRequest {
-  /** Account ID (must belong to your tenant). */
-  accountId: string;
   /** e.g. USDT_TRC20, ETH */
   cryptoCurrencyCode: string;
   /** Destination wallet address. */

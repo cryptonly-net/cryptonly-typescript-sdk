@@ -4,7 +4,6 @@ import type { SettlementBreakdown } from './settlement';
 
 /** `POST /deposit` request body (tenant API key). */
 export interface CreateDepositApiKeyRequest {
-  accountId: string;
   cryptoCurrencyCode: string;
   orderId: string;
   customerId?: string;
@@ -50,12 +49,10 @@ export interface DepositDataResponse {
 export type DepositListResponse = PaginatedList<Deposit>;
 
 export interface GetDepositsQuery extends PaginationQuery {
-  accountId: string;
   status?: DepositStatus;
 }
 
 export interface GetDepositQuery {
-  accountId: string;
   id?: string;
   orderId?: string;
 }
