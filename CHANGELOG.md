@@ -5,6 +5,14 @@ All notable changes to `@cryptonly/sdk` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-10-17
+
+### Removed
+
+- `client.addressProvision`, the `AddressProvision*` types, the `ADDRESS_PROVISION_*` constants, and `CRYPTONLY_EXCEPTION_ADDRESS_PROVISION_TEMPORARILY_DISABLED`.
+- `DepositStatusChangedWebhookData.addressProvisionId`.
+- `CRYPTONLY_WEBHOOK_EVENT_X402_PAYMENT_SETTLED`, `CRYPTONLY_WEBHOOK_EVENT_X402_PAYMENT_FAILED`, and the `CryptonlyX402Payment*WebhookBody` types. x402 settlement outcomes are read with `x402Settlements.list` and `x402Settlements.get`.
+
 ## [1.5.0] - 2026-10-06
 
 ### Changed

@@ -1,8 +1,23 @@
 import type { PaginatedList, PaginationQuery } from './pagination';
-import type { X402PaymentWebhookData } from '../webhook/types';
 
-/** One x402 settlement. Same JSON as the `x402.payment.*` webhook `data`. */
-export type X402Settlement = X402PaymentWebhookData;
+/** One x402 settlement from `GET /x402/settlements`. */
+export interface X402Settlement {
+  id: string;
+  status: 'submitted' | 'confirmed' | 'failed';
+  /** CAIP-2, e.g. `eip155:8453`. */
+  network: string;
+  /** Token contract. */
+  asset: string;
+  /** Atomic units. */
+  amount: string;
+  payer: string;
+  payTo: string;
+  /** Empty until the settlement is broadcast. */
+  transaction: string;
+  errorReason: string | null;
+  createdAt: string;
+  confirmedAt: string | null;
+}
 
 export type X402SettlementStatus = X402Settlement['status'];
 

@@ -1,7 +1,6 @@
 import { MERCHANT_API_BASE_URL, SANDBOX_MERCHANT_API_BASE_URL } from '../config/constants';
 import { AccountsClient } from '../resources/accounts.client';
 import { CurrenciesClient } from '../resources/currencies.client';
-import { AddressProvisionClient } from '../resources/address-provision.client';
 import { DepositClient } from '../resources/deposit.client';
 import { InvoiceClient } from '../resources/invoice.client';
 import { WithdrawalClient } from '../resources/withdrawal.client';
@@ -79,13 +78,6 @@ export class Cryptonly {
   readonly deposit: DepositClient;
 
   /**
-   * @deprecated Address provisioning is temporarily disabled; both calls fail
-   * with HTTP 503 `exceptions.addressProvision.temporarilyDisabled`.
-   * Create a deposit per payment with `deposit.create` instead.
-   */
-  readonly addressProvision: AddressProvisionClient;
-
-  /**
    * Create and list invoices, cancel pending invoices.
    */
   readonly invoice: InvoiceClient;
@@ -139,7 +131,6 @@ export class Cryptonly {
       fetchImpl,
     };
     this.deposit = new DepositClient(this._ctx);
-    this.addressProvision = new AddressProvisionClient(this._ctx);
     this.invoice = new InvoiceClient(this._ctx);
     this.withdrawal = new WithdrawalClient(this._ctx);
     this.accounts = new AccountsClient(this._ctx);

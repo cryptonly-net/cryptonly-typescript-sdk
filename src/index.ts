@@ -6,7 +6,6 @@ export * from './errors/merchant-api-codes';
 export { newSdkOrderId } from './helpers/util-id';
 
 export * from './config/constants';
-export * from './config/address-provision';
 export * from './types';
 export * from './webhook/constants';
 export * from './webhook/types';

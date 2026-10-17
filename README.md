@@ -1,11 +1,16 @@
-# `@cryptonly/sdk`
+<img src="https://raw.githubusercontent.com/cryptonly-net/.github/main/profile/assets/header-banner.svg" alt="Cryptonly" width="100%" />
+
+<div align="center">
+
+# Cryptonly — Merchant API SDK
 
 Official JavaScript/TypeScript SDK for the Cryptonly merchant API.
 
-Use it to create invoices and deposits, manage withdrawals, reserve reusable deposit addresses, and work with merchant accounts from secure backend environments.
+[Website](https://cryptonly.net) · [Documentation](https://cryptonly.gitbook.io/docs/integration/sdk) · [Contact](https://cryptonly.net/contact/)
 
-- Website: [cryptonly.net](https://cryptonly.net)
-- Documentation: [cryptonly.net/docs](https://cryptonly.net/docs)
+</div>
+
+---
 
 > This SDK is for **server-side use only**. Never expose your Cryptonly API key in browser code, mobile apps, or other client-side environments.
 
@@ -169,22 +174,19 @@ This constant is also exported for custom `fetch` calls and lower-level integrat
 
 ## API surface
 
-The `Cryptonly` client exposes six resource clients. Request/response types are exported from `@cryptonly/sdk` (see `CreateInvoiceParams`, `CreateDepositParams`, `WithdrawalQuoteRequest`, and related types).
+The `Cryptonly` client exposes five resource clients. Request/response types are exported from `@cryptonly/sdk` (see `CreateInvoiceParams`, `CreateDepositParams`, `WithdrawalQuoteRequest`, and related types).
 
 | Client property | Methods |
 |-----------------|---------|
 | `invoice` | `create`, `list`, `get`, `cancel` |
 | `withdrawal` | `quote`, `commit`, `list`, `get` |
 | `deposit` | `create`, `list`, `get` |
-| `addressProvision` | `create`, `get` (deprecated, HTTP 503) |
 | `accounts` | `list`, `create` |
 | `currencies` | `list`, `listFiat` |
 
 **Top-level exports (not on `client`):** `verifyInvoiceWebhook`, `verifyWithdrawalWebhook`, `verifyDepositWebhook`, `CryptonlyApiError`, `newSdkOrderId`, merchant API constants, webhook event constants, and error code constants.
 
 ### REST paths
-
-Use SDK methods instead of constructing `x-tenant-api-key` headers manually.
 
 - `POST /invoice` — `invoice.create`
 - `GET /invoice/list` — `invoice.list`
@@ -197,8 +199,6 @@ Use SDK methods instead of constructing `x-tenant-api-key` headers manually.
 - `POST /deposit` — `deposit.create`
 - `GET /deposit/list` — `deposit.list`
 - `GET /deposit` — `deposit.get`
-- `POST /address-provision` — `addressProvision.create` (deprecated)
-- `GET /address-provision` — `addressProvision.get` (deprecated)
 - `GET /accounts` — `accounts.list`
 - `POST /accounts` — `accounts.create`
 - `GET /currencies` — `currencies.list` (optional `network` query)
@@ -241,10 +241,6 @@ If the withdrawal balance can't cover `amount` + on-chain fee and `allowAutoConv
 `deposit.get` validates like invoice lookup (`accountId` + `id` or `orderId`) or throws **`TypeError`**. Idempotent retries: reuse the same `orderId` on `create`.
 
 Every deposit gets its own address. The payer covers the network fee of sweeping it: `MerchantCurrency.depositNetworkFee` shows the current fee, the completed deposit's `settlement.depositNetworkFeeAmount` shows the fee withheld (before the commission), and invoices add it on top of the crypto amount at checkout. `deposit.create` fails with HTTP 503 `CRYPTONLY_EXCEPTION_DEPOSIT_FEE_QUOTE_UNAVAILABLE` while a currency has no live fee quote (`depositNetworkFee: null`); retry shortly.
-
-### `client.addressProvision` (deprecated)
-
-Address provisioning is temporarily disabled: both `create` and `get` fail with HTTP 503 `CRYPTONLY_EXCEPTION_ADDRESS_PROVISION_TEMPORARILY_DISABLED`. Use `deposit.create` for each payment.
 
 ### `client.accounts`
 
