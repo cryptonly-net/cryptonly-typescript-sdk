@@ -6,7 +6,7 @@
 
 Official JavaScript/TypeScript SDK for the Cryptonly merchant API.
 
-[Website](https://cryptonly.net) · [Documentation](https://cryptonly.gitbook.io/docs/integration/sdk) · [Contact](https://cryptonly.net/contact/)
+[Website](https://cryptonly.net) · [Documentation](https://docs.cryptonly.net/integration/sdk/) · [Contact](https://cryptonly.net/contact/)
 
 </div>
 
@@ -79,7 +79,7 @@ Import **`verifyInvoiceWebhook`**, **`verifyWithdrawalWebhook`**, or **`verifyDe
 
 The `data` object largely matches merchant **GET** invoice, **GET** withdrawal, or **GET** deposit; the account UUID is **`accountId`**. Webhooks include optional `previousStatus`.
 
-Obtain and rotate the webhook signing secret in the Cryptonly dashboard on the account’s **Security** settings (the full key is shown once after rotate; store it like an API key). The API key selects that account. The signature is **HMAC-SHA256** over the exact raw request body bytes (UTF-8), sent as lowercase hex in `x-webhook-signature`. For threat model, replay handling, default webhook URLs, and integration examples, see [Cryptonly docs → webhooks](https://cryptonly.net/docs).
+Obtain and rotate the webhook signing secret in the Cryptonly dashboard on the account’s **Security** settings (the full key is shown once after rotate; store it like an API key). The API key selects that account. The signature is **HMAC-SHA256** over the exact raw request body bytes (UTF-8), sent as lowercase hex in `x-webhook-signature`. For threat model, replay handling, default webhook URLs, and integration examples, see [Cryptonly docs → webhooks](https://docs.cryptonly.net/api-reference/webhooks/).
 
 ---
 
@@ -451,14 +451,14 @@ If a key is exposed, revoke it immediately and issue a new one.
 
 ## Related documentation
 
-For full API behavior and product-level flows, see the [Cryptonly docs](https://cryptonly.net/docs), including:
+For full API behavior and product-level flows, see the [Cryptonly docs](https://docs.cryptonly.net/), including:
 
-- API authorization
-- invoices
-- deposits
-- withdrawals
-- idempotency
-- webhooks
+- [API authorization](https://docs.cryptonly.net/api-reference/authorization/)
+- [Invoices](https://docs.cryptonly.net/guides/invoices/)
+- [Deposits](https://docs.cryptonly.net/guides/deposits/)
+- [Withdrawals](https://docs.cryptonly.net/guides/withdrawals/)
+- [Idempotency](https://docs.cryptonly.net/api-reference/idempotency/)
+- [Webhooks](https://docs.cryptonly.net/api-reference/webhooks/)
 
 ---
 
