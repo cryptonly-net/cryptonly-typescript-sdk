@@ -8,7 +8,7 @@ export type SupportedNetwork =
   | 'Solana';
 
 /** Token standard for non-native crypto assets. Omitted for chain-native coins. */
-export type TokenType = 'erc20' | 'trc20' | 'bep20';
+export type TokenType = 'erc20' | 'trc20' | 'bep20' | 'spl';
 
 /**
  * Network fee the payer covers on each deposit: the cost of sweeping the

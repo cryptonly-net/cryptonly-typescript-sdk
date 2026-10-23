@@ -84,7 +84,7 @@ export interface WithdrawalQuoteRequest {
 
 /** Fee breakdown attached to a `WithdrawalQuote`. */
 export interface WithdrawalQuoteFeeBreakdown {
-  /** Real on-chain fee, in network base currency (ETH/TRX/BNB/BTC; ETH on Base). */
+  /** Real on-chain fee, in network base currency (ETH/TRX/BNB/BTC/SOL; ETH on Base). */
   feeNative: number;
   /** Network base currency symbol, e.g. `ETH`. */
   feeCurrency: string;
@@ -100,6 +100,11 @@ export interface WithdrawalAutoConvertPreview {
   toAssetCode: string;
   fromAmount: number;
   toAmount: number;
+  /**
+   * Conversion commission in `fromAssetCode`, included in `fromAmount`.
+   * 0 for USDT <-> USDC; 0.05% of `fromAmount` for every other pair.
+   */
+  commissionAmount?: number;
 }
 
 /**

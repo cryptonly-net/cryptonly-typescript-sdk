@@ -5,6 +5,16 @@ All notable changes to `@cryptonly/sdk` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-10-22
+
+### Added
+
+- `'spl'` in `TokenType`, for the Solana `USDC_SOL` and `USDT_SOL` currencies. Native `SOL` has no token type, and withdrawal fees on Solana are quoted in `SOL`.
+- `WithdrawalAutoConvertPreview.commissionAmount`: the conversion commission in `fromAssetCode`, already included in `fromAmount`. It is 0 for USDT ↔ USDC and 0.05% of `fromAmount` for every other pair.
+- `Invoice.x402Url`: a URL AI agents pay with an x402 client. A request without payment answers `402 Payment Required`, and a paid retry settles the invoice. Present unless x402 is off for the invoice.
+- `Invoice.paymentChannel` (`InvoicePaymentChannel`): `address` or `x402`, once the invoice was paid.
+- `CreateInvoiceApiKeyRequest.x402Enabled`: set `false` to create an invoice without an `x402Url`.
+
 ## [1.7.0] - 2026-10-17
 
 ### Removed

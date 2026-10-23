@@ -36,7 +36,18 @@ export interface CreateInvoiceApiKeyRequest {
   expiresInMinutes?: number;
   customerId?: string;
   customPayload?: string;
+  /**
+   * Whether AI agents may pay the invoice over `x402Url`. Defaults to `true`.
+   * With `false` the invoice has no `x402Url`.
+   */
+  x402Enabled?: boolean;
 }
+
+/**
+ * How the payer paid an invoice: `address` when they sent funds to the
+ * deposit address, `x402` when an agent paid `x402Url`.
+ */
+export type InvoicePaymentChannel = 'address' | 'x402';
 
 /**
  * Parameters for `new Cryptonly(...).invoice.create(...)`. Looser than the wire body:
@@ -101,6 +112,12 @@ export interface Invoice {
   customPayload?: string;
   /** Hosted payment page URL; present on create, GET, list, and webhooks. */
   paymentPageUrl: string;
+  /**
+   * x402 payment URL for AI agents
+   */
+  x402Url?: string;
+  /** How the payer paid, once a payment was made. */
+  paymentChannel?: InvoicePaymentChannel;
   /** Present when the API recorded an initiation channel for this invoice. */
   source?: InitiationSource;
 }
