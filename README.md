@@ -12,32 +12,20 @@ Official JavaScript/TypeScript SDK for the Cryptonly merchant API.
 
 ---
 
-> This SDK is for **server-side use only**. Never expose your Cryptonly API key in browser code, mobile apps, or other client-side environments.
-
----
-
-## Installation
+## Install
 
 ```bash
 npm install @cryptonly/sdk
 ```
 
-### TypeScript
-
-If you use TypeScript, use **TypeScript 4.5+** so the package declaration files parse correctly.
-
-The package declares `typescript` as an optional `peerDependency`, so JavaScript-only projects do not need to install it.
-
----
+Requires Node.js 18 or later. TypeScript users need TypeScript 4.5 or later.
 
 ## Quick start
 
 ```ts
 import { Cryptonly } from '@cryptonly/sdk';
 
-const client = new Cryptonly({
-  apiKey: process.env.CRYPTONLY_API_KEY!,
-});
+const client = new Cryptonly({ apiKey: process.env.CRYPTONLY_API_KEY! });
 
 const invoice = await client.invoice.create({
   amount: 100,
@@ -45,259 +33,44 @@ const invoice = await client.invoice.create({
   description: 'Order #123',
   orderId: 'order_123',
 });
-
-console.log(invoice);
 ```
 
----
+## Options
 
-## Features
+| Option | Default | |
+| --- | --- | --- |
+| `apiKey` | required | Your Cryptonly API key. It selects the account. |
+| `sandbox` | `false` | Call the [sandbox](https://docs.cryptonly.net/guides/sandbox-environment/) API instead of production. |
+| `baseUrl` | `https://api-merchant.cryptonly.net` | Another API origin. Takes precedence over `sandbox`. |
+| `timeout` | `60000` | Request timeout in milliseconds. |
+| `fetch` | `globalThis.fetch` | A custom `fetch`, for tests or older runtimes. |
 
-- Typed client for the Cryptonly merchant API
-- Invoice creation and management
-- Crypto **deposits** (a dedicated address per deposit)
-- Withdrawal creation and lookup (quote + commit), with automatic virtual balance top-up when needed
-- Supported crypto and fiat currency directory
-- Built-in API key authentication
-- Idempotent create operations via `orderId` (invoices, deposits, withdrawals)
-- Structured error handling with `CryptonlyApiError`
-- **`verifyInvoiceWebhook`**, **`verifyWithdrawalWebhook`**, and **`verifyDepositWebhook`** — HMAC verification helpers for Cryptonly-signed outbound webhooks (see below)
+## Resources
 
----
+| Client | Methods | Guide |
+| --- | --- | --- |
+| `client.invoice` | `create`, `list`, `get`, `cancel` | [Invoices](https://docs.cryptonly.net/guides/invoices/) |
+| `client.deposit` | `create`, `list`, `get` | [Deposits](https://docs.cryptonly.net/guides/deposits/) |
+| `client.withdrawal` | `quote`, `commit`, `list`, `get` | [Withdrawals](https://docs.cryptonly.net/guides/withdrawals/) |
+| `client.currencies` | `list`, `listFiat` | [Supported currencies](https://docs.cryptonly.net/guides/supported-currencies/) |
+| `client.x402Settlements` | `list`, `get` | [x402 payments](https://docs.cryptonly.net/guides/x402/) |
 
-## Verifying inbound webhooks
+`get` and `cancel` take `{ id }` or `{ orderId }`. `list` methods return `{ data, total, page, limit, hasMore }`. Request and response types are exported from the package.
 
-When Cryptonly POSTs to your `webhookUrl`, the body is JSON (`event`, `data`, `timestamp`) and the `x-webhook-signature` header is **hex HMAC-SHA256** over the **exact raw request body** (UTF-8), using the account webhook signing secret.
-
-Import **`verifyInvoiceWebhook`**, **`verifyWithdrawalWebhook`**, or **`verifyDepositWebhook`**: pass the raw body as a **UTF-8 string** or **`Buffer`** (same bytes Cryptonly signed), the `x-webhook-signature` header value, and the secret. Each returns `{ ok: true, envelope }` or `{ ok: false, reason }` (e.g. wrong signature or wrong `event`). Related types (`WebhookVerificationRawBody`, `InvoiceStatusChangedWebhookData`, `DepositStatusChangedWebhookData`, …) and event constants are exported from the same package.
-
-| Event constant | Verifier | When sent |
-|----------------|----------|-----------|
-| `invoice.statusChanged` | `verifyInvoiceWebhook` | Invoice status transitions (includes linked deposit settlement on the invoice payload) |
-| `withdrawal.statusChanged` | `verifyWithdrawalWebhook` | Withdrawal status transitions |
-| `deposit.statusChanged` | `verifyDepositWebhook` | Standalone merchant deposits (not invoice-linked deposits) |
-
-The `data` object largely matches merchant **GET** invoice, **GET** withdrawal, or **GET** deposit; the account UUID is **`accountId`**. Webhooks include optional `previousStatus`.
-
-Obtain and rotate the webhook signing secret in the Cryptonly dashboard on the account’s **Security** settings (the full key is shown once after rotate; store it like an API key). The API key selects that account. The signature is **HMAC-SHA256** over the exact raw request body bytes (UTF-8), sent as lowercase hex in `x-webhook-signature`. For threat model, replay handling, default webhook URLs, and integration examples, see [Cryptonly docs → webhooks](https://docs.cryptonly.net/api-reference/webhooks/).
-
----
-
-## Authentication
-
-Pass your tenant API key to the client constructor:
+### Create a deposit address
 
 ```ts
-import { Cryptonly } from '@cryptonly/sdk';
-
-const client = new Cryptonly({
-  apiKey: process.env.CRYPTONLY_API_KEY!,
-});
-```
-
-The SDK automatically sends the key in the `x-tenant-api-key` header on every request.
-
-### Important
-
-API keys must only be used in systems you control, such as:
-
-- backend services
-- internal APIs
-- workers
-- cron jobs
-- secure server environments
-
-Do **not** use this SDK directly in:
-
-- browser-based frontend apps
-- mobile apps
-- public client bundles
-- environments visible to end users
-
----
-
-## Configuration
-
-### `apiKey`
-
-**Required.** Your Cryptonly tenant API key.
-
-```ts
-const client = new Cryptonly({
-  apiKey: process.env.CRYPTONLY_API_KEY!,
-});
-```
-
-### `sandbox`
-
-**Optional.** When `true`, uses `SANDBOX_MERCHANT_API_BASE_URL` instead of production. Ignored when `baseUrl` is set explicitly.
-
-```ts
-import { Cryptonly, SANDBOX_MERCHANT_API_BASE_URL } from '@cryptonly/sdk';
-
-const client = new Cryptonly({
-  apiKey: process.env.CRYPTONLY_API_KEY!,
-  sandbox: true,
+const deposit = await client.deposit.create({
+  cryptoCurrencyCode: 'USDT_TRC20',
+  orderId: 'deposit_123',
 });
 
-console.log(SANDBOX_MERCHANT_API_BASE_URL);
-// https://sandbox-api-merchant.cryptonly.net
+console.log(deposit.address, deposit.qrCode);
 ```
 
-### `timeout`
+### Send a withdrawal
 
-**Optional.** Per-request timeout in milliseconds. Defaults to `60_000`.
-
-### `fetch`
-
-**Optional.** Custom `fetch` implementation. Defaults to `globalThis.fetch`
-(Node 18+). Provide a polyfill or test double when running on older runtimes.
-
----
-
-## Default API origin
-
-The SDK uses the default merchant API origin:
-
-```ts
-import { MERCHANT_API_BASE_URL } from '@cryptonly/sdk';
-
-console.log(MERCHANT_API_BASE_URL);
-// https://api-merchant.cryptonly.net
-```
-
-This constant is also exported for custom `fetch` calls and lower-level integrations.
-
----
-
-## API surface
-
-The `Cryptonly` client exposes resource clients. The API key selects the account, so requests do not take an account id. Response and webhook payloads still include `accountId`. Request/response types are exported from `@cryptonly/sdk` (see `CreateInvoiceParams`, `CreateDepositParams`, `WithdrawalQuoteRequest`, and related types).
-
-| Client property | Methods |
-|-----------------|---------|
-| `invoice` | `create`, `list`, `get`, `cancel` |
-| `withdrawal` | `quote`, `commit`, `list`, `get` |
-| `deposit` | `create`, `list`, `get` |
-| `currencies` | `list`, `listFiat` |
-
-**Top-level exports (not on `client`):** `verifyInvoiceWebhook`, `verifyWithdrawalWebhook`, `verifyDepositWebhook`, `CryptonlyApiError`, `newSdkOrderId`, merchant API constants, webhook event constants, and error code constants.
-
-### REST paths
-
-- `POST /invoice` — `invoice.create`
-- `GET /invoice/list` — `invoice.list`
-- `GET /invoice` — `invoice.get` (query: `id` or `orderId`)
-- `POST /invoice/cancel` — `invoice.cancel`
-- `POST /withdrawal/quote` — `withdrawal.quote`
-- `POST /withdrawal/commit` — `withdrawal.commit`
-- `GET /withdrawal/list` — `withdrawal.list`
-- `GET /withdrawal` — `withdrawal.get`
-- `POST /deposit` — `deposit.create`
-- `GET /deposit/list` — `deposit.list`
-- `GET /deposit` — `deposit.get`
-- `GET /currencies` — `currencies.list` (optional `network` query)
-- `GET /currencies/fiat` — `currencies.listFiat`
-
-### `client.invoice`
-
-| Method | HTTP | Purpose |
-|--------|------|---------|
-| `create` | `POST /invoice` | Create a hosted-payment invoice. Body: `CreateInvoiceParams` — `fiatCurrencyCode`, `orderId` (or omit to auto-generate), `amount` and/or `items` (a positive `amount` is the total; items compute the total only when `amount` is omitted), `description`, `returnUrl`, `successUrl`, `failedUrl`, `customerId`, etc. Response `expiresAt` is a **`Date`**. |
-| `list` | `GET /invoice/list` | Paginated list. Optional query: `status`, `page`, `limit`. Returns `{ data, total, page, limit, hasMore }`. |
-| `get` | `GET /invoice` | Single invoice. Query: `id` or `orderId`. |
-| `cancel` | `POST /invoice/cancel` | Cancel a pending invoice. Same query as `get`. |
-
-`invoice.get` and `invoice.cancel` validate locally: at least one of `id` or `orderId` — otherwise **`TypeError`**.
-
-### `client.withdrawal`
-
-Two-step flow: **`quote`** then **`commit`**. The quote does not reserve balance; it returns a short-lived `quoteId` and fee breakdown.
-
-| Method | HTTP | Purpose |
-|--------|------|---------|
-| `quote` | `POST /withdrawal/quote` | Stage 1. Body: `WithdrawalQuoteRequest` — `amount`, `cryptoCurrencyCode`, `address`, optional `orderId` (idempotency), optional `allowAutoConvert`. |
-| `commit` | `POST /withdrawal/commit` | Stage 2. Body: `{ quoteId }`. |
-| `list` | `GET /withdrawal/list` | Paginated list. Optional query: `status`, `page`, `limit`. |
-| `get` | `GET /withdrawal` | Single withdrawal. Query: `id` or `orderId`. |
-
-`withdrawal.get` validates locally (`id` or `orderId`) or throws **`TypeError`**.
-
-If the withdrawal balance can't cover `amount` + on-chain fee and `allowAutoConvert: true` was set, `WithdrawalQuote.autoConvert` describes a conversion (`fromAssetCode` → `toAssetCode`) that tops it up at commit time.
-
-### `client.deposit`
-
-| Method | HTTP | Purpose |
-|--------|------|---------|
-| `create` | `POST /deposit` | Dedicated crypto top-up address. Body: `CreateDepositParams` — `cryptoCurrencyCode`, `orderId`; optional `customerId`. Returns `id`, `address`, `minimumAmount`, `createdAt`, `expiresAt`, `qrCode`. |
-| `list` | `GET /deposit/list` | Paginated deposits. Optional query: `status`, `page`, `limit`. |
-| `get` | `GET /deposit` | Single deposit. Query: `id` or `orderId`. |
-
-`deposit.get` validates like invoice lookup (`id` or `orderId`) or throws **`TypeError`**. Idempotent retries: reuse the same `orderId` on `create`.
-
-Every deposit gets its own address. The payer covers the network fee of sweeping it: `MerchantCurrency.depositNetworkFee` is the current quote, the fee is withheld before commission and shows up in `settlement.netAmount`, and invoices add it on top of the crypto amount at checkout.
-
-### `client.currencies`
-
-Read-only directory.
-
-| Method | HTTP | Purpose |
-|--------|------|---------|
-| `list` | `GET /currencies` | All supported crypto currencies; optional `{ network: 'Tron' }`. `depositCommission` is the tenant-wide effective rate (identical on every row). |
-| `listFiat` | `GET /currencies/fiat` | Fiat codes valid for `invoice.create` (`fiatCurrencyCode`). |
-
-```ts
-const supported = await client.currencies.list();
-const tronAssets = await client.currencies.list({ network: 'Tron' });
-const fiats = await client.currencies.listFiat();
-```
-
-### Shared response notes
-
-- **`invoice.list`**, **`withdrawal.list`**, and **`deposit.list`** return paginated envelopes. List rows use **`Date`** for timestamp fields where the SDK parses them; **`source`** (`api` \| `admin_panel`) appears when the API includes initiation metadata.
-- **Invoices:** optional **`returnUrl`**, **`successUrl`**, **`failedUrl`**, **`customerId`**, **`customPayload`**, and linked **`deposit`** summary when present.
-- **Withdrawals:** **`createdAt`**, **`updatedAt`**, **`quoteId`**, **`transferId`** (nullable) alongside fee and amount fields.
-- Prefer exported error constants (e.g. **`CRYPTONLY_EXCEPTION_INVOICE_NOT_FOUND`**, **`CRYPTONLY_EXCEPTION_INVOICE_CUSTOMER_BLOCKED`**, **`CRYPTONLY_EXCEPTION_WITHDRAWAL_INSUFFICIENT_BALANCE`**, **`CRYPTONLY_EXCEPTION_AUTH_INVALID_API_KEY`**) over string literals on **`CryptonlyApiError.code`**.
-
-```ts
-import {
-  Cryptonly,
-  CryptonlyApiError,
-  CRYPTONLY_EXCEPTION_WITHDRAWAL_INSUFFICIENT_BALANCE,
-} from '@cryptonly/sdk';
-```
-
----
-
-## Usage examples
-
-### Create an invoice
-
-```ts
-import { Cryptonly } from '@cryptonly/sdk';
-
-const client = new Cryptonly({
-  apiKey: process.env.CRYPTONLY_API_KEY!,
-});
-
-const invoice = await client.invoice.create({
-  amount: 100,
-  fiatCurrencyCode: 'USD',
-  description: 'Order #123',
-  orderId: 'order_123',
-});
-
-console.log(invoice);
-```
-
-### Create a withdrawal
-
-Withdrawals are created via the two-step quote + commit flow. The quote
-returns the real on-chain fee converted into the withdrawal currency,
-and pins the merchant's `orderId` (idempotency key) to that quote - so
-retrying the quote call with the same `orderId` collapses to the same
-quote, and `(orderId, account)` can ever back at most one committed
-withdrawal. Omit `orderId` to get a fresh, non-deduplicating quote.
+A withdrawal takes two calls. `quote` returns the fee and a short-lived `quoteId`, and `commit` sends it.
 
 ```ts
 const quote = await client.withdrawal.quote({
@@ -307,169 +80,84 @@ const quote = await client.withdrawal.quote({
   orderId: 'withdrawal_123',
 });
 
-const withdrawal = await client.withdrawal.commit({
-  quoteId: quote.quoteId,
-});
-
-console.log(withdrawal);
+const withdrawal = await client.withdrawal.commit({ quoteId: quote.quoteId });
 ```
 
-### Get a withdrawal
+Pass `allowAutoConvert: true` to the quote to cover a shortfall by converting another asset on your balance. `quote.autoConvert` then shows the conversion.
+
+### List x402 payments
 
 ```ts
-const withdrawal = await client.withdrawal.get({
-  id: 'wd_123',
-});
-
-console.log(withdrawal);
+const { data } = await client.x402Settlements.list({ status: 'confirmed' });
 ```
 
-### Create a deposit
-
-```ts
-const deposit = await client.deposit.create({
-  cryptoCurrencyCode: 'USDT_TRC20',
-  orderId: 'deposit_123',
-  customerId: 'cust_456', // optional
-});
-
-console.log(deposit.address, deposit.qrCode);
-```
-
----
+The API key needs the `x402.list` scope.
 
 ## Idempotency
 
-Invoice, deposit, and withdrawal creation are idempotent through the `orderId` field.
+`orderId` makes `invoice.create`, `deposit.create` and `withdrawal.quote` safe to retry. A retry with the same `orderId` returns the original instead of creating a duplicate. See [idempotency](https://docs.cryptonly.net/api-reference/idempotency/).
 
-Use a unique `orderId` for each logical operation. If you need to retry the same request, send the same `orderId` again.
+## Verify webhooks
 
-This helps prevent duplicate invoices, deposits, or withdrawals when requests are retried after timeouts or temporary failures.
-
-### Example
+Cryptonly signs each webhook with your account's signing key. Pass the raw request body, the `x-webhook-signature` header and the key to the verifier for the event:
 
 ```ts
-await client.invoice.create({
-  amount: 100,
-  fiatCurrencyCode: 'USD',
-  description: 'Order #123',
-  orderId: 'order_123',
+import express from 'express';
+import { verifyInvoiceWebhook } from '@cryptonly/sdk';
+
+app.post('/webhooks/cryptonly', express.raw({ type: 'application/json' }), (req, res) => {
+  const result = verifyInvoiceWebhook(
+    req.body, // the raw Buffer, not parsed JSON
+    req.header('x-webhook-signature'),
+    process.env.CRYPTONLY_WEBHOOK_SECRET!,
+  );
+  if (!result.ok) return res.sendStatus(401);
+
+  console.log(result.envelope.data.status);
+  res.sendStatus(200);
 });
 ```
 
-If the same create request is retried with the same `orderId`, Cryptonly treats it as the same logical operation.
+| Event | Verifier |
+| --- | --- |
+| `invoice.statusChanged` | `verifyInvoiceWebhook` |
+| `deposit.statusChanged` | `verifyDepositWebhook` |
+| `withdrawal.statusChanged` | `verifyWithdrawalWebhook` |
 
----
+On failure, `result.reason` is `missing_signature`, `invalid_signature`, `invalid_json` or `wrong_event`. Get the signing key in the dashboard under **Security**. See [webhooks](https://docs.cryptonly.net/api-reference/webhooks/) for payloads and retries.
 
-## Error handling
+## Errors
 
-Failed HTTP responses (`4xx` / `5xx`), network errors, and request timeouts
-throw a `CryptonlyApiError`.
+Every failed request throws a `CryptonlyApiError`:
 
-This error includes:
-
-- `status` - HTTP status code (`0` for transport-level errors such as aborted
-  requests and DNS failures)
-- `path` - request path
-- `message` - human-readable message, taken from the server when available
-- `code` - stable machine-readable error code from the server, e.g.
-  `exceptions.auth.invalidApiKey`,
-  `exceptions.withdrawal.insufficientBalance`,
-  `exceptions.rateLimit.exceeded`. Branch on this rather than `message`.
-- `extension` - structured payload accompanying the error, when the server
-  provided one (e.g. `{ msBeforeNext: 1234 }` for rate-limit errors)
-- `requestId` - value of the `x-request-id` (or `x-correlation-id`) response
-  header, when set. Include this when contacting support.
-- `body` - full parsed response body
-
-### Example
+| Field | |
+| --- | --- |
+| `status` | HTTP status, or `0` for network errors and timeouts. |
+| `code` | Stable error code, such as `exceptions.withdrawal.insufficientBalance`. Branch on this. |
+| `message` | Human-readable message. |
+| `extension` | Extra data, such as `{ msBeforeNext }` on rate limits. |
+| `requestId` | Include it when you contact support. |
+| `path`, `body` | The request path and the parsed response body. |
 
 ```ts
-import { Cryptonly, CryptonlyApiError } from '@cryptonly/sdk';
-
-const client = new Cryptonly({
-  apiKey: process.env.CRYPTONLY_API_KEY!,
-});
+import { CryptonlyApiError, CRYPTONLY_EXCEPTION_WITHDRAWAL_INSUFFICIENT_BALANCE } from '@cryptonly/sdk';
 
 try {
-  await client.invoice.create({
-    amount: 100,
-    fiatCurrencyCode: 'USD',
-    description: 'Order #123',
-    orderId: 'order_123',
-  });
+  await client.withdrawal.commit({ quoteId });
 } catch (error) {
-  if (error instanceof CryptonlyApiError) {
-    if (error.code === 'exceptions.rateLimit.exceeded') {
-      const wait = Number(error.extension?.msBeforeNext ?? 1000);
-      // back off and retry
-    }
-    console.error('Status:', error.status);
-    console.error('Code:', error.code);
-    console.error('Path:', error.path);
-    console.error('Request ID:', error.requestId);
-    console.error('Body:', error.body);
-  } else {
-    console.error('Unexpected error:', error);
+  if (error instanceof CryptonlyApiError && error.code === CRYPTONLY_EXCEPTION_WITHDRAWAL_INSUFFICIENT_BALANCE) {
+    // top up, then retry
   }
-
   throw error;
 }
 ```
 
----
-
-## Recommended usage pattern
-
-Use the SDK from your backend only.
-
-A typical integration looks like this:
-
-1. your frontend sends a request to your backend
-2. your backend calls Cryptonly using this SDK
-3. your backend stores the result and returns only the data your frontend needs
-
-This keeps your API key secure and gives you control over validation, retries, and business logic.
-
----
-
-## Security
-
-Treat your Cryptonly API key like a password.
-
-Recommended practices:
-
-- store it in environment variables or a secrets manager
-- never commit it to source control
-- never expose it in client-side code
-- rotate it if you suspect it has been compromised
-- use separate keys for different environments when appropriate
-
-If a key is exposed, revoke it immediately and issue a new one.
-
----
-
-## Related documentation
-
-For full API behavior and product-level flows, see the [Cryptonly docs](https://docs.cryptonly.net/), including:
-
-- [API authorization](https://docs.cryptonly.net/api-reference/authorization/)
-- [Invoices](https://docs.cryptonly.net/guides/invoices/)
-- [Deposits](https://docs.cryptonly.net/guides/deposits/)
-- [Withdrawals](https://docs.cryptonly.net/guides/withdrawals/)
-- [Idempotency](https://docs.cryptonly.net/api-reference/idempotency/)
-- [Webhooks](https://docs.cryptonly.net/api-reference/webhooks/)
-
----
+Error codes are exported as `CRYPTONLY_EXCEPTION_*` constants.
 
 ## Contributing
 
-Source code and issue tracking live on GitHub: [github.com/cryptonly-net/cryptonly-typescript-sdk](https://github.com/cryptonly-net/cryptonly-typescript-sdk).
-
-Bug reports, feature requests, and pull requests are welcome. Open an issue before large changes so we can align on approach.
-
----
+Bug reports and pull requests are welcome on [GitHub](https://github.com/cryptonly-net/cryptonly-typescript-sdk). For larger changes, open an issue first. See [CONTRIBUTING.md](CONTRIBUTING.md) and, for vulnerabilities, [SECURITY.md](SECURITY.md).
 
 ## License
 
-UNLICENSED
+[MIT](LICENSE)
