@@ -5,6 +5,12 @@ All notable changes to `@cryptonly/sdk` are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.2] - 2026-10-30
+
+### Changed
+
+- The npm homepage link now points to https://cryptonly.net. The repository link still points to GitHub.
+
 ## [1.9.1] - 2026-10-24
 
 ### Changed

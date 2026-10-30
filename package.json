@@ -1,6 +1,6 @@
 {
   "name": "@cryptonly/sdk",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "description": "Official Cryptonly SDK.",
   "license": "MIT",
   "private": false,
@@ -13,7 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/cryptonly-net/cryptonly-typescript-sdk.git"
   },
-  "homepage": "https://github.com/cryptonly-net/cryptonly-typescript-sdk#readme",
+  "homepage": "https://cryptonly.net",
   "bugs": {
     "url": "https://github.com/cryptonly-net/cryptonly-typescript-sdk/issues"
   },
